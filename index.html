@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>三关问道 · 机制演示</title>
+<style>
+
+:root{
+  --paper:#F3EDE0;--paper-2:#EAE2D2;--paper-3:#E0D5BF;
+  --ink:#17150F;--ink-soft:#23211C;--ink-light:#454138;--ink-faint:#665F54;
+  --seal:#A8442F;--seal-light:#C4624C;--seal-deep:#7E2F1F;
+  --xian:#2F4F6F;--mo:#7A2B26;--gold:#B08D3F;
+  --line:rgba(43,43,43,.12);
+  --serif:"Songti SC","STSong","Noto Serif SC","Source Han Serif SC",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --ease:cubic-bezier(.22,.75,.28,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:var(--sans);line-height:1.7;
+  padding:0 22px 44px;
+}
+.app{max-width:430px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;}
+
+/* 顶部进度 */
+.cl-head{display:flex;align-items:center;gap:14px;padding:16px 0 14px;}
+.cl-prog{flex:1;height:3px;background:var(--paper-3);border-radius:3px;overflow:hidden;}
+.cl-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--seal-light),var(--seal));border-radius:3px;transition:width .5s var(--ease);}
+.cl-count{font-size:12px;color:var(--ink-faint);letter-spacing:.5px;font-variant-numeric:tabular-nums;}
+.cl-count b{color:var(--seal);font-weight:600;}
+
+.screen{display:none;flex:1;flex-direction:column;}
+.screen.on{display:flex;}
+#scQuiz.on{justify-content:center;}
+#scQuiz .qz-opts{margin-top:44px;}
+
+/* ===== 立誓 ===== */
+.pl-eyebrow{margin:8px 0 0;font-size:10px;letter-spacing:3.4px;color:var(--seal);}
+.pl-title{margin:10px 0 0;font-family:var(--serif);font-size:23px;line-height:1.6;letter-spacing:1px;font-weight:600;}
+.pl-sub{margin:10px 0 0;font-size:12.5px;line-height:1.9;color:var(--ink-faint);letter-spacing:.3px;}
+.pl-translate{margin:14px 0 0;padding:10px 14px;font-size:12px;line-height:1.9;color:var(--ink-faint);background:rgba(0,0,0,.025);border-left:2px solid var(--gold,#B98A3E);text-align:left;}
+
+.pl-step{margin-top:26px;}
+.pl-label{margin:0 0 10px;font-size:10px;letter-spacing:2.6px;color:var(--ink-faint);}
+.pl-camps{display:flex;gap:10px;}
+.camp-t{
+  flex:1;padding:15px 12px 13px;text-align:left;
+  border:1px solid rgba(120,96,60,.26);border-radius:11px;
+  background:rgba(255,252,245,.62);
+  cursor:pointer;transition:all .22s var(--ease);
+  display:flex;flex-direction:column;gap:6px;
+}
+.camp-t:active{transform:scale(.985);}
+.camp-t.on{background:#1F1D18;border-color:#1F1D18;}
+.camp-t.on .ct-name{color:#F7F1E4;}
+.camp-t.on .ct-desc{color:rgba(247,241,228,.6);}
+.ct-name{font-family:var(--serif);font-size:16px;letter-spacing:3px;color:var(--ink);font-weight:600;}
+.ct-desc{font-size:10.5px;line-height:1.6;color:var(--ink-faint);}
+
+.pl-jobs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.job-t{
+  padding:11px 4px;text-align:center;
+  border:1px solid rgba(120,96,60,.22);border-radius:9px;
+  background:rgba(255,252,245,.5);
+  font-family:var(--serif);font-size:13.5px;letter-spacing:1px;
+  color:var(--ink-light);cursor:pointer;transition:all .2s;
+}
+.job-t.on{background:var(--seal);border-color:var(--seal);color:#FBF6EA;box-shadow:0 6px 16px -8px rgba(168,68,47,.7);}
+.job-t:active{transform:scale(.96);}
+
+.pl-go{
+  margin-top:30px;padding:16px;width:100%;
+  border:none;border-radius:10px;cursor:pointer;
+  background:linear-gradient(150deg,var(--seal-light),var(--seal-deep));
+  color:#FBF6EA;font-family:var(--serif);font-size:15px;letter-spacing:4px;
+  box-shadow:0 10px 24px -10px rgba(168,68,47,.7);
+  transition:all .22s var(--ease);
+}
+.pl-go:disabled{opacity:.32;box-shadow:none;cursor:not-allowed;}
+.pl-go:not(:disabled):active{transform:translateY(1px);}
+.pl-note{margin:16px 0 0;text-align:center;font-family:var(--serif);font-size:12px;line-height:2;letter-spacing:1px;color:var(--ink-faint);}
+
+/* ===== 答题 ===== */
+.qz-phase{margin:10px 0 0;font-size:9.5px;letter-spacing:2.6px;color:var(--seal);}
+.qz-scene{
+  margin:26px 0 0;font-family:var(--serif);
+  font-size:24px;line-height:1.8;letter-spacing:.8px;color:var(--ink);
+}
+.qz-kicker{margin:30px 0 0;font-size:9.5px;letter-spacing:2.4px;color:var(--ink-faint);}
+.qz-opts{margin-top:30px;display:flex;flex-direction:column;gap:12px;}
+.cl-opt{
+  padding:19px 16px;text-align:left;
+  border:1px solid rgba(120,96,60,.24);border-radius:11px;
+  background:rgba(255,252,245,.66);
+  font-size:14px;line-height:1.75;color:var(--ink);
+  cursor:pointer;transition:all .2s var(--ease);
+  display:flex;gap:11px;align-items:flex-start;
+}
+.cl-opt:active{transform:scale(.988);}
+.cl-opt .om{
+  flex:none;width:19px;height:19px;margin-top:1px;
+  border:1px solid rgba(120,96,60,.4);border-radius:50%;
+  font-size:10px;line-height:17px;text-align:center;color:var(--ink-faint);
+}
+.cl-opt.none{background:transparent;border-style:dashed;color:var(--ink-faint);font-size:13px;}
+.cl-opt.none .om{border-style:dashed;}
+.cl-opt.chosen{background:#1F1D18;border-color:#1F1D18;color:#F7F1E4;}
+.cl-opt.chosen .om{border-color:rgba(247,241,228,.5);color:rgba(247,241,228,.8);}
+
+/* ===== 命牌 ===== */
+.pai-wrap{margin:18px 0 0;}
+.pai{
+  position:relative;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #FBF6EA 0%, #F2EADA 46%, #E7DCC6 100%);
+  border:1px solid rgba(120,96,60,.34);
+  border-radius:16px;
+  padding:16px 16px 14px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.9) inset,
+    0 10px 30px -14px rgba(70,52,30,.4),
+    0 2px 6px rgba(70,52,30,.08);
+  overflow:hidden;
+}
+/* 纸纹 */
+.pai::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(140,110,70,.045) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(0deg, rgba(140,110,70,.03) 0 1px, transparent 1px 5px);
+}
+.pai-corner{
+  position:absolute;width:16px;height:16px;
+  border:2px solid var(--seal);opacity:.5;
+}
+.pai-corner.tl{top:8px;left:8px;border-right:0;border-bottom:0;}
+.pai-corner.tr{top:8px;right:8px;border-left:0;border-bottom:0;}
+.pai-corner.bl{bottom:8px;left:8px;border-right:0;border-top:0;}
+.pai-corner.br{bottom:8px;right:8px;border-left:0;border-top:0;}
+
+.pai-head{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1;padding:2px 6px 10px;}
+.ph-brand{margin:0;font-family:var(--serif);font-size:13px;letter-spacing:5px;color:var(--seal);font-weight:600;}
+.ph-sub{margin:1px 0 0;font-size:8.5px;letter-spacing:2.6px;color:var(--ink-faint);}
+.ph-no{margin:0;font-size:10px;letter-spacing:1.6px;color:var(--ink-faint);}
+.ph-no b{color:var(--ink);font-size:13px;}
+
+.pai-body{display:flex;gap:13px;position:relative;z-index:1;}
+.pai-portrait{
+  position:relative;flex:none;
+  width:140px;height:178px;
+  border-radius:9px;overflow:hidden;
+  border:1px solid rgba(120,96,60,.3);
+  box-shadow:0 4px 14px -6px rgba(70,52,30,.5);
+  background:linear-gradient(160deg,#3B5A78,#8FA6BC);
+}
+.pai-portrait img{width:100%;height:100%;object-fit:cover;display:block;}
+.pai-camp{
+  position:absolute;left:0;bottom:0;right:0;
+  font-family:var(--serif);font-size:10.5px;letter-spacing:3px;
+  text-align:center;padding:3px 0 4px;color:#FBF6EA;
+  background:linear-gradient(0deg,rgba(23,21,15,.82),rgba(23,21,15,.0));
+}
+
+.pai-info{flex:1;min-width:0;display:flex;flex-direction:column;}
+.pi-eyebrow{margin:0;font-size:9.5px;letter-spacing:2.2px;color:var(--ink-faint);}
+.pi-name{
+  margin:2px 0 0;font-family:var(--serif);
+  font-size:30px;line-height:1.15;letter-spacing:2px;font-weight:600;color:var(--ink);
+}
+.pi-branch{
+  margin:3px 0 0;display:inline-block;align-self:flex-start;
+  font-family:var(--serif);font-size:11px;letter-spacing:2px;
+  color:var(--seal);padding:1px 8px;border:1px solid rgba(168,68,47,.36);border-radius:3px;
+}
+.pi-rows{margin:auto 0 0;padding:0;}
+.pi-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:4px 0;border-top:1px solid rgba(120,96,60,.16);}
+.pi-row:first-child{border-top:0;}
+.pi-row dt{font-size:9.5px;letter-spacing:1.8px;color:var(--ink-faint);}
+.pi-row dd{margin:0;}
+.stars{font-size:12px;letter-spacing:1px;color:var(--gold);}
+.rarity{font-family:var(--serif);color:var(--seal);font-size:17px;font-weight:600;line-height:1;}
+.rarity span{font-size:10px;margin-left:1px;}
+.date{font-size:11px;letter-spacing:1px;color:var(--ink-light);font-variant-numeric:tabular-nums;}
+
+.pai-pov{
+  position:relative;z-index:1;
+  margin:12px 0 0;padding:11px 13px;
+  border-radius:8px;
+  background:rgba(255,252,244,.72);
+  border:1px solid rgba(120,96,60,.18);
+}
+.pov-label{
+  position:absolute;top:-7px;left:11px;
+  font-size:8.5px;letter-spacing:2px;color:var(--ink-faint);
+  background:#F4EEE1;padding:0 5px;
+}
+.pov-text{
+  margin:0;font-family:var(--serif);font-size:14px;line-height:1.85;
+  letter-spacing:.6px;color:var(--ink);
+}
+
+.pai-foot{position:relative;z-index:1;margin-top:10px;padding:0 6px;text-align:center;}
+.pf-tagline{margin:0;font-family:var(--serif);font-size:11.5px;letter-spacing:1.4px;color:var(--seal-deep);}
+.pf-cert{display:none;margin:7px 0 0;font-size:8.5px;line-height:1.6;letter-spacing:.8px;color:var(--ink-faint);}
+.pf-cert b{font-weight:600;letter-spacing:.2px;}
+
+.rarity-note{
+  margin:9px 0 0;text-align:center;
+  font-size:10.5px;letter-spacing:1.6px;color:var(--ink-faint);
+}
+
+
+/* ===== 结果 ===== */
+.rs-head{margin-top:12px;text-align:center;}
+.rs-tag{
+  display:inline-block;margin:0;padding:3px 12px;
+  font-size:9.5px;letter-spacing:2.6px;border-radius:3px;
+  color:var(--seal);border:1px solid rgba(168,68,47,.36);
+}
+.rs-tag.ok{color:#3C6B4A;border-color:rgba(60,107,74,.4);}
+.rs-tag.mid{color:var(--gold);border-color:rgba(176,141,63,.45);}
+.rs-name{margin:14px 0 0;font-family:var(--serif);font-size:34px;letter-spacing:6px;font-weight:600;}
+.rs-line{margin:10px 0 0;font-size:13.5px;line-height:2;color:var(--ink-light);}
+
+.rs-compare{margin:26px 0 0;padding:16px;border-radius:11px;background:rgba(255,252,245,.62);border:1px solid rgba(120,96,60,.16);}
+.cmp-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-top:1px solid rgba(120,96,60,.12);}
+.cmp-row:first-child{border-top:0;}
+.cmp-k{font-size:10px;letter-spacing:2.2px;color:var(--ink-faint);}
+.cmp-v{font-family:var(--serif);font-size:16px;letter-spacing:1.6px;color:var(--ink-light);}
+.cmp-v.hi{color:var(--seal);font-weight:600;}
+
+.rs-block{margin:26px 0 0;}
+.b-title{margin:0 0 12px;font-family:var(--serif);font-size:12.5px;letter-spacing:2.6px;color:var(--seal-deep);font-weight:600;}
+.bars{display:flex;flex-direction:column;gap:9px;}
+.bar-row{display:flex;align-items:center;gap:10px;}
+.bar-name{flex:none;width:26px;font-family:var(--serif);font-size:14px;color:var(--ink);}
+.bar-track{flex:1;height:8px;border-radius:4px;background:var(--paper-3);overflow:hidden;}
+.bar-fill{display:block;height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,var(--seal-light),var(--seal));animation:bg .9s var(--ease) .12s forwards;}
+.bar-row.dim .bar-fill{background:linear-gradient(90deg,#CFC4AC,#A99C82);}
+@keyframes bg{to{width:var(--w);}}
+.bar-num{flex:none;width:22px;text-align:right;font-size:11.5px;color:var(--ink-faint);font-variant-numeric:tabular-nums;}
+.bar-row.dim .bar-num{opacity:.72;}
+.b-note{margin:12px 0 0;font-size:10.5px;line-height:1.7;color:var(--ink-faint);}
+.b-say{margin:0;font-size:13.5px;line-height:2.05;color:var(--ink-soft);}
+.b-para{margin:0 0 9px;font-size:13.5px;line-height:2.05;color:var(--ink-soft);letter-spacing:.2px;}
+.b-para:last-child{margin-bottom:0;}
+
+.rs-secret{
+  margin:26px 0 0;padding:20px 17px;
+  border-radius:12px;color:#F0E9DB;
+  background:linear-gradient(170deg,#26231D,#1A1813);
+}
+.rs-secret .s-tag{margin:0 0 11px;font-size:9.5px;letter-spacing:2.4px;color:rgba(200,160,110,.9);}
+.rs-secret .s-p{margin:0 0 9px;font-size:13px;line-height:2.05;color:rgba(240,233,219,.86);}
+.rs-secret .s-p:last-of-type{margin-bottom:0;}
+.rs-secret .s-q{
+  margin:16px 0 0;padding-top:14px;border-top:1px solid rgba(240,233,219,.14);
+  font-family:var(--serif);font-size:15px;line-height:1.95;color:#F7F1E4;
+}
+.rs-actions{display:flex;gap:10px;margin:28px 0 0;}
+.btn-again,.btn-back2{
+  flex:1;padding:14px;border-radius:9px;cursor:pointer;
+  font-family:var(--serif);font-size:13px;letter-spacing:2px;
+}
+.btn-again{border:none;background:linear-gradient(150deg,var(--seal-light),var(--seal-deep));color:#FBF6EA;}
+.btn-back2{border:1px solid rgba(120,96,60,.3);background:transparent;color:var(--ink-light);}
+
+@keyframes qin{
+  from{opacity:0;transform:translateX(14px);}
+  to{opacity:1;transform:none;}
+}
+
+/* ---------- 答题页顶部 ---------- */
+.qz-top{display:flex;align-items:baseline;gap:10px;margin:10px 0 0;}
+.qz-stage{
+  font-family:var(--serif);font-size:11px;letter-spacing:3px;
+  color:#FBF6EA;background:var(--seal);padding:2px 9px;border-radius:2px;
+}
+.qz-phase{font-size:9.5px;letter-spacing:2px;color:var(--ink-faint);}
+
+/* ---------- 居中屏 ---------- */
+.screen.center{align-items:center;justify-content:center;text-align:center;padding-bottom:40px;}
+.sc-wrap,.asc-wrap{width:100%;max-width:360px;}
+
+.sc-no{margin:0;font-size:9.5px;letter-spacing:2.6px;color:var(--ink-faint);}
+.sc-dots{display:flex;justify-content:center;gap:7px;margin:14px 0 26px;}
+.sc-dots .dot{width:20px;height:2px;border-radius:2px;background:var(--paper-3);transition:background .4s;}
+.sc-dots .dot.on{background:var(--seal);}
+
+.sc-title{
+  margin:0;font-family:var(--serif);
+  font-size:56px;letter-spacing:12px;font-weight:600;color:var(--ink);
+  text-indent:12px;
+  animation:scIn .8s var(--ease);
+}
+@keyframes scIn{
+  from{opacity:0;letter-spacing:26px;filter:blur(4px);}
+  to{opacity:1;letter-spacing:12px;filter:none;}
+}
+.sc-lead{margin:22px 0 0;font-family:var(--serif);font-size:14px;letter-spacing:3px;color:var(--seal);}
+.sc-body{margin:12px 0 0;font-size:13px;line-height:2.15;color:var(--ink-light);letter-spacing:.4px;}
+.sc-tail{margin:26px 0 0;font-size:11.5px;letter-spacing:1.6px;color:var(--ink-faint);}
+
+.sc-next{
+  margin-top:34px;padding:15px 52px;
+  border:none;border-radius:9px;cursor:pointer;
+  background:linear-gradient(150deg,var(--seal-light),var(--seal-deep));
+  color:#FBF6EA;font-family:var(--serif);font-size:14px;letter-spacing:6px;
+  box-shadow:0 12px 28px -12px rgba(168,68,47,.8);
+}
+.sc-next:active{transform:translateY(1px);}
+
+/* ---------- 飞升 ---------- */
+.asc-wrap{position:relative;}
+.asc-ring{
+  width:86px;height:86px;margin:0 auto 22px;border-radius:50%;
+  border:1px solid rgba(168,68,47,.32);position:relative;
+  animation:ringPulse 3.4s ease-in-out infinite;
+}
+.asc-ring::after{
+  content:"";position:absolute;inset:11px;border-radius:50%;
+  border:1px solid rgba(168,68,47,.5);
+}
+.asc-ring::before{
+  content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;
+  margin:-2.5px 0 0 -2.5px;border-radius:50%;background:var(--seal);
+  box-shadow:0 0 14px 4px rgba(168,68,47,.35);
+}
+@keyframes ringPulse{
+  0%,100%{transform:scale(1);opacity:.9;}
+  50%{transform:scale(1.06);opacity:1;}
+}
+.asc-kicker{margin:0;font-size:9.5px;letter-spacing:4px;color:var(--ink-faint);}
+.asc-title{
+  margin:12px 0 0;font-family:var(--serif);
+  font-size:62px;letter-spacing:16px;font-weight:600;text-indent:16px;
+  animation:scIn 1s var(--ease);
+}
+.asc-body{margin:20px 0 0;font-size:13px;line-height:2.15;color:var(--ink-light);}
+.asc-note{
+  margin:22px 0 0;font-size:11.5px;line-height:1.9;letter-spacing:1px;
+  color:var(--seal);
+}
+.asc-btn{
+  margin-top:32px;padding:15px 46px;
+  border:none;border-radius:9px;cursor:pointer;
+  background:#1F1D18;color:#F7F1E4;
+  font-family:var(--serif);font-size:14px;letter-spacing:6px;
+  box-shadow:0 12px 30px -12px rgba(23,21,15,.7);
+}
+.asc-btn:active{transform:translateY(1px);}
+
+/* ---------- 结果页补充 ---------- */
+.rs-branch{
+  margin:6px 0 0;display:inline-block;
+  font-family:var(--serif);font-size:11px;letter-spacing:2px;
+  color:var(--seal);padding:2px 9px;border:1px solid rgba(168,68,47,.34);border-radius:2px;
+}
+.rs-tag.flip{color:#8A5A12;border-color:rgba(138,90,18,.42);background:rgba(176,141,63,.1);}
+.rs-tag.big{color:#7E2F1F;border-color:rgba(126,47,31,.5);background:rgba(126,47,31,.07);}
+.rs-lead{
+  margin:22px 0 0;font-size:13.5px;line-height:2.1;color:var(--ink-light);letter-spacing:.3px;
+}
+.rs-lead b{color:var(--seal);font-weight:600;}
+.rs-line{
+  margin:14px 0 0;padding-top:14px;border-top:1px solid rgba(120,96,60,.14);
+  font-family:var(--serif);font-size:13px;line-height:2;color:var(--ink-faint);
+}
+
+/* ---------- 仙门图 ---------- */
+.asc-gate{
+  position:relative;width:100%;max-width:340px;margin:0 auto 20px;
+  border-radius:14px;overflow:hidden;
+  border:1px solid rgba(168,68,47,.26);
+  box-shadow:0 16px 44px -18px rgba(0,0,0,.7);
+  animation:gateIn 1.1s var(--ease);
+}
+@keyframes gateIn{
+  from{opacity:0;transform:scale(1.05);filter:brightness(.4);}
+  to{opacity:1;transform:none;filter:none;}
+}
+.asc-gate img{width:100%;display:block;aspect-ratio:2/3;object-fit:cover;}
+.asc-gate-fade{
+  position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(243,237,224,0) 62%,rgba(243,237,224,.92) 96%);
+}
+
+/* ===== 别人眼里的你 ===== */
+.mirror{
+  margin:0;padding:14px 15px;border-radius:10px;
+  background:rgba(255,252,245,.62);border:1px solid rgba(120,96,60,.16);
+  font-size:13px;line-height:2.05;color:var(--ink-soft);letter-spacing:.2px;
+}
+.mirror::before{content:"他 们 说";display:block;margin-bottom:6px;font-size:9px;letter-spacing:2.4px;color:var(--ink-faint);}
+
+/* ===== 六脉图（雷达 + 竖排条 并排） ===== */
+.dim-row{display:flex;align-items:center;gap:6px;}
+.radar-wrap{flex:0 0 58%;display:flex;justify-content:center;padding:2px 0 0;}
+#radar{display:block;width:100%;max-width:230px;height:auto;}
+.dim-row .bars{flex:1;min-width:0;display:flex;flex-direction:column;gap:9px;}
+
+/* ===== 相生相克 ===== */
+.rel-row{display:flex;gap:10px;}
+.rel-cell{
+  flex:1;padding:14px 13px 13px;border-radius:11px;
+  background:rgba(255,252,245,.62);border:1px solid rgba(120,96,60,.16);
+}
+.rel-label{margin:0;font-size:8.5px;letter-spacing:2.2px;color:var(--ink-faint);}
+.rel-name{margin:3px 0 0;font-family:var(--serif);font-size:16px;letter-spacing:1.6px;color:var(--ink);display:flex;align-items:center;gap:6px;}
+.dot{width:6px;height:6px;border-radius:50%;flex:none;}
+.dot.xian{background:var(--xian);}
+.dot.mo{background:var(--mo);}
+.rel-hint{margin:6px 0 0;font-size:10.5px;line-height:1.75;color:var(--ink-faint);}
+
+/* ===== 三关战绩 ===== */
+.journey{display:flex;flex-direction:column;gap:0;}
+.jr-row{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 0;border-top:1px solid rgba(120,96,60,.13);
+}
+.jr-row:first-child{border-top:0;padding-top:0;}
+.jr-no{
+  flex:none;width:24px;height:24px;border-radius:50%;margin-top:2px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:10px;color:var(--paper);
+  background:var(--ink-light);
+}
+.jr-row.asc .jr-no{background:linear-gradient(150deg,var(--gold),#8A6A28);}
+.jr-main{flex:1;min-width:0;}
+.jr-head{display:flex;align-items:baseline;gap:8px;}
+.jr-stage{margin:0;font-family:var(--serif);font-size:14px;letter-spacing:2px;color:var(--ink);}
+.jr-chip{
+  margin-left:auto;padding:1px 7px;border-radius:3px;
+  font-size:8.5px;letter-spacing:1.2px;color:var(--seal);
+  border:1px solid rgba(168,68,47,.32);
+}
+.jr-chip.ghost{color:var(--ink-faint);border-color:rgba(120,96,60,.24);}
+.jr-desc{margin:4px 0 0;font-size:10.5px;line-height:1.7;color:var(--ink-faint);}
+
+/* ===== MBTI 对照 ===== */
+.mbti-row{
+  display:flex;align-items:center;gap:12px;
+  margin:22px 0 0;padding:13px 15px;border-radius:10px;
+  background:rgba(255,252,245,.5);border:1px dashed rgba(120,96,60,.26);
+}
+.mbti-k{flex:none;font-size:9px;letter-spacing:2px;color:var(--ink-faint);line-height:1.6;}
+.mbti-code{
+  flex:none;font-family:var(--serif);font-size:19px;letter-spacing:3px;
+  color:var(--seal);font-weight:600;
+}
+.mbti-v{margin-left:auto;font-size:10.5px;line-height:1.7;color:var(--ink-faint);text-align:right;}
+
+
+/* ===== 今日一句 ===== */
+.quote-card{
+  margin:34px 0 0;padding:22px 20px 18px;
+  border-radius:12px;text-align:center;
+  background:linear-gradient(160deg,rgba(255,252,245,.9),rgba(246,240,228,.72));
+  border:1px solid rgba(120,96,60,.2);
+}
+.quote-card::before{
+  content:"「";display:block;margin:0 auto 2px;
+  font-family:var(--serif);font-size:26px;line-height:1;color:rgba(168,68,47,.28);
+}
+.qc-k{margin:0 0 10px;font-size:8.5px;letter-spacing:3px;color:var(--ink-faint);}
+.qc-t{
+  margin:0;font-family:var(--serif);font-size:16px;line-height:1.95;
+  letter-spacing:.8px;color:var(--ink);text-wrap:balance;
+}
+.qc-s{margin:12px 0 0;font-size:9.5px;letter-spacing:1.6px;color:var(--ink-faint);}
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="cl-head">
+    <div class="cl-prog"><i id="progFill"></i></div>
+    <div class="cl-count"><b id="nowNo">1</b>/<span id="totalNo">20</span></div>
+  </header>
+
+  <!-- ===== 一 · 立誓 ===== -->
+  <section class="screen on" id="scPledge">
+    <p class="pl-eyebrow">初 入 修 仙 界</p>
+    <h1 class="pl-title">你先选一条路。<br>然后我们看，你走下来的最终结果。</h1>
+    <p class="pl-sub">三关十五问，另加照心五问。中间不会告诉你任何结果——飞升那一刻才揭晓，你到底是谁。</p>
+    <p class="pl-translate">你以为自己在上班、回消息、纠结要不要去聚会——<br>但在修仙界，这些全是道心试炼。<br>你的每一个日常选择，都在暴露你的命格。</p>
+
+    <div class="pl-step">
+      <p class="pl-label">一 · 你入哪一门</p>
+      <div class="pl-camps">
+        <button class="camp-t" data-camp="仙门">
+          <span class="ct-name">仙 门</span>
+          <span class="ct-desc">规矩是你的台阶，也是你的枷锁</span>
+        </button>
+        <button class="camp-t" data-camp="魔门">
+          <span class="ct-name">魔 门</span>
+          <span class="ct-desc">没人为你兜底，也没人替你背锅</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="pl-step">
+      <p class="pl-label">二 · 你选哪一脉</p>
+      <div class="pl-jobs" id="jobList"></div>
+    </div>
+
+    <button class="pl-go" id="btnGo" disabled>炼 气 入 门</button>
+    <p class="pl-note">人生的道路变幻莫测，<br>可能你走着走着，却发现已经迷失了方向</p>
+  </section>
+
+  <!-- ===== 二 · 答题 ===== -->
+  <section class="screen" id="scQuiz">
+    <div class="qz-top">
+      <span class="qz-stage" id="sacredStage">金丹</span>
+      <span class="qz-phase" id="qzPhase"></span>
+    </div>
+    <p class="qz-kicker">遇 上 了 这 样 一 桩 事</p>
+    <p class="qz-scene" id="qzScene"></p>
+    <div class="qz-opts" id="qzOpts"></div>
+  </section>
+
+  <!-- ===== 三 · 境界结算 ===== -->
+  <section class="screen center" id="scStage">
+    <div class="sc-wrap">
+      <p class="sc-no" id="scNo">第一关 · 立身处 已过</p>
+      <div class="sc-dots" id="scDots"></div>
+      <h1 class="sc-title" id="scTitle">金丹</h1>
+      <p class="sc-lead" id="scLead">恭喜你。</p>
+      <p class="sc-body" id="scBody"></p>
+      <p class="sc-tail" id="scTail"></p>
+      <button class="sc-next" id="btnNext">续 关</button>
+    </div>
+  </section>
+
+  <!-- ===== 四 · 飞升 ===== -->
+  <section class="screen center" id="scAscend">
+    <div class="asc-wrap">
+      <div class="asc-gate">
+        <img src="images/ascend_gate.jpg" alt="仙门开启"
+             onerror="this.style.display='none';document.querySelector('.asc-ring').style.display='block';">
+        <div class="asc-gate-fade"></div>
+      </div>
+      <div class="asc-ring" style="display:none;"></div>
+      <p class="asc-kicker">三 关 已 过 · 心 魔 未 渡</p>
+      <h1 class="asc-title" id="ascTitle">渡 心 魔</h1>
+      <p class="asc-body" id="ascBody"></p>
+      <p class="asc-note" id="ascNote"></p>
+      <button class="asc-btn" id="btnAscend">渡 劫 飞 升</button>
+    </div>
+  </section>
+
+  <!-- ===== 五 · 结果 ===== -->
+  <section class="screen" id="scResult">
+    <div class="rs-head">
+      <p class="rs-tag" id="rsTag">另 有 天 命</p>
+    </div>
+
+    <section class="pai-wrap">
+      <div class="pai" id="pai">
+        <div class="pai-corner tl"></div><div class="pai-corner tr"></div>
+        <div class="pai-corner bl"></div><div class="pai-corner br"></div>
+
+        <div class="pai-head">
+          <div class="ph-left">
+            <p class="ph-brand">修 仙 命 格</p>
+            <p class="ph-sub">FATE CARD</p>
+          </div>
+          <div class="ph-right"><p class="ph-no">NO.<b id="paiNo">07</b> / 021</p></div>
+        </div>
+
+        <div class="pai-body">
+          <div class="pai-portrait" id="paiPortrait">
+            <span class="pai-camp" id="paiCamp">仙门</span>
+          </div>
+          <div class="pai-info">
+            <p class="pi-eyebrow" id="paiEyebrow">仙门 · 守序 · 那个什么都要顾全的人</p>
+            <h1 class="pi-name" id="rsName">法修</h1>
+            <p class="pi-branch" id="rsBranch">五行 · 那个什么都要顾全的人</p>
+            <dl class="pi-rows">
+              <div class="pi-row"><dt id="paiPurityK">剑心纯度</dt><dd class="stars" id="paiStars">★★★★☆</dd></div>
+              <div class="pi-row"><dt>江湖占比</dt><dd class="rarity"><b id="paiRarity">6</b><span>%</span></dd></div>
+              <div class="pi-row"><dt>验牌日</dt><dd class="date" id="paiDate">2026-11-04</dd></div>
+            </dl>
+          </div>
+        </div>
+
+        <div class="pai-pov">
+          <span class="pov-label">内心话</span>
+          <p class="pov-text" id="paiPov"></p>
+        </div>
+
+        <div class="pai-foot">
+          <p class="pf-tagline" id="paiTagline"></p>
+        </div>
+      </div>
+      <p class="rarity-note" id="paiNote"></p>
+    </section>
+
+    <div class="rs-compare">
+      <div class="cmp-row">
+        <span class="cmp-k">你初选</span>
+        <span class="cmp-v" id="cmpPledge">剑修</span>
+      </div>
+      <div class="cmp-row">
+        <span class="cmp-k">你其实是</span>
+        <span class="cmp-v hi" id="cmpReal">炼丹师</span>
+      </div>
+    </div>
+
+    <p class="rs-lead" id="rsLead"></p>
+    <p class="rs-line" id="rsLine"></p>
+
+    <div class="rs-block">
+      <p class="b-title">你的心魔，是怎么来的</p>
+      <p class="b-say" id="winSay"></p>
+    </div>
+
+    <div class="rs-block">
+      <p class="b-title">它帮过你什么 · 它让你付出什么</p>
+      <p class="b-say" id="karmaSay"></p>
+    </div>
+
+    <div class="rs-block">
+      <p class="b-title">心魔名场面</p>
+      <p class="b-say" id="fameSay"></p>
+    </div>
+
+    <div class="mbti-row" id="mbtiRow"></div>
+
+    <div class="rs-block">
+      <p class="b-title">别人眼里的你</p>
+      <p class="mirror" id="rsMirror"></p>
+    </div>
+
+    <div class="rs-block">
+      <p class="b-title">六脉图</p>
+      <div class="dim-row">
+        <div class="radar-wrap"><canvas id="radar" width="360" height="330"></canvas></div>
+        <div class="bars" id="bars"></div>
+      </div>
+      <p class="b-note">六种心性各出场 10 次，看哪一种一次次赢下来。图是同一条线的高矮。</p>
+    </div>
+
+    <div class="rs-block">
+      <p class="b-title">和你合得来 · 合不来</p>
+      <div class="rel-row" id="relRow"></div>
+    </div>
+
+    <div class="rs-secret" id="rsSecret"></div>
+
+    <div class="rs-block">
+      <p class="b-title">你的三关战绩</p>
+      <div class="journey" id="journey"></div>
+    </div>
+
+    <div class="quote-card" id="quoteCard">
+      <p class="qc-k">今 日 一 句</p>
+      <p class="qc-t" id="quoteText"></p>
+      <p class="qc-s">这一句，是给今天的你</p>
+    </div>
+
+    <div class="rs-actions">
+      <button class="btn-again" id="btnAgain">重 走 一 次</button>
+      <button class="btn-back2" id="btnHome">重新入门</button>
+    </div>
+  </section>
+
+</div>
+<script>
+window.CLASH_DATA={"version": "4.0", "note": "六情绪对撞题库 v4：忧A/芥蒂B/酸C/怒D/让E/冷F。题目层全面日常化（同事/领导/公司/微信），修仙感留给结果页释放——题目越日常，结果页反差越强。15组两两对撞×2轮=30题，每项出场10次。选项写成「心里那句话」的情绪语感，不写行为。忧的轻重按场景强度控制：轻=小事当场有余地，重=大事有后果有人在看。", "traits": {"A": {"name": "忧", "key": "悬着", "desc": "怕出错，怕失控", "inner": "会不会不太好／万一搞砸了", "dir": "自己与结果", "essence": "怕"}, "B": {"name": "芥蒂", "key": "心结", "desc": "对他有不满，没说出口", "inner": "他这人，我怎么看怎么别扭", "dir": "对方这个人", "essence": "嫌"}, "C": {"name": "酸", "key": "意难平", "desc": "不甘心，凭什么不是我", "inner": "凭什么是他不是我", "dir": "我与他的落差", "essence": "争"}, "D": {"name": "怒", "key": "刚烈", "desc": "当场就要一个说法", "inner": "凭什么这样对我", "dir": "对方的行为", "essence": "冲"}, "E": {"name": "让", "key": "退让", "desc": "退让。为体谅，或为不敢", "inner": "算了，别让他难堪／别惹事", "dir": "对方感受／冲突本身", "essence": "退"}, "F": {"name": "冷", "key": "疏离", "desc": "不吵，但从此划清界限", "inner": "行，那就这样吧", "dir": "关系的距离", "essence": "撤"}}, "questions": [{"id": "Y01", "pair": "AB", "round": 1, "weight": "light", "scene": "你熬了一夜做的方案，第二天领导看了一眼就否了。你坐在工位上，没说话。", "options": [{"trait": "A", "text": "心里一沉，先想是不是方案本来就做得不行"}, {"trait": "B", "text": "他都没看完，凭什么否"}], "bonus": false}, {"id": "Y02", "pair": "AC", "round": 1, "weight": "light", "scene": "你在群里说了一段话。半天，没人接。", "options": [{"trait": "A", "text": "翻回去看了两遍，猜是不是哪句说得不合适"}, {"trait": "C", "text": "凭什么他们聊得那么热闹，到我这句就断了"}], "bonus": false}, {"id": "Y03", "pair": "AD", "round": 1, "weight": "heavy", "scene": "领导当众点你的名，说你这半年退步了。满堂的人都在看你。", "options": [{"trait": "A", "text": "脑子嗡一下，只剩一个念头：完了，他们都看见了"}, {"trait": "D", "text": "当场就顶回去：我退没退，您倒是说清楚"}], "bonus": false}, {"id": "Y04", "pair": "AE", "round": 1, "weight": "light", "scene": "你和同事一起做的事，出了岔子。领导问是谁的责任。", "options": [{"trait": "A", "text": "手心出汗，先把话在心里过一遍，怕说错"}, {"trait": "E", "text": "算了，我认了吧，别让他下不来台"}], "bonus": false}, {"id": "Y05", "pair": "AF", "round": 1, "weight": "light", "scene": "一个从前很热络的同事，最近回你消息越来越短。", "options": [{"trait": "A", "text": "反复想自己是不是哪句话说重了"}, {"trait": "F", "text": "行，那就这样吧。我也不发了"}], "bonus": false}, {"id": "Y06", "pair": "BC", "round": 1, "weight": "light", "scene": "有人当面夸你，说你这一组里就数你最稳。说完笑了一下。", "options": [{"trait": "B", "text": "笑是笑了，可那笑里有点别的意思，我心里记下了"}, {"trait": "C", "text": "凭什么他来评我稳不稳，他是谁"}], "bonus": false}, {"id": "Y07", "pair": "BD", "round": 1, "weight": "light", "scene": "饭桌上，有人拿你的出身开玩笑。满桌都在笑。", "options": [{"trait": "B", "text": "跟着笑，但那一刻，这人在我心里就低了半格"}, {"trait": "D", "text": "把筷子放下：这句不好笑"}], "bonus": false}, {"id": "Y08", "pair": "BE", "round": 1, "weight": "light", "scene": "你托他带的东西，他转手给了别人，还说是你不要的。", "options": [{"trait": "B", "text": "不问了。但从此我怎么看他，都少了一层"}, {"trait": "E", "text": "算了，一个东西而已，别为这个撕破脸"}], "bonus": false}, {"id": "Y09", "pair": "BF", "round": 1, "weight": "light", "scene": "几个老同事聚在一起说话。你走过去，话头停了。", "options": [{"trait": "B", "text": "他们刚才在说我什么，我心里过不去这个坎"}, {"trait": "F", "text": "点个头，走开。以后这种局我也不来了"}], "bonus": false}, {"id": "Y10", "pair": "CD", "round": 1, "weight": "heavy", "scene": "和你同期进公司的那个人，先一步升了职。你听说的时候，正在改他不要的方案。", "options": [{"trait": "C", "text": "凭什么是他。我哪一点不如他"}, {"trait": "D", "text": "我找师父问一句，他凭什么"}], "bonus": false}, {"id": "Y11", "pair": "CE", "round": 1, "weight": "light", "scene": "公司有个名额，你和另一个人都想要，最后给了他。", "options": [{"trait": "C", "text": "嘴上说着恭喜，心里那口气怎么也顺不下去"}, {"trait": "E", "text": "算了，他更需要，我等等下次"}], "bonus": false}, {"id": "Y12", "pair": "CF", "round": 1, "weight": "light", "scene": "从前最要好的那位，最近朋友圈总跟另一个人互动。见了你也只点个头。", "options": [{"trait": "C", "text": "想不通。我到底哪一点不如那个人"}, {"trait": "F", "text": "各走各的路。他再来找我，我也客气着"}], "bonus": false}, {"id": "Y13", "pair": "DE", "round": 1, "weight": "light", "scene": "排队领奶茶，前面有个人直接夹了进来。", "options": [{"trait": "D", "text": "直接开口：不好意思，队尾在后面"}, {"trait": "E", "text": "算了，让他先吧，别为这点事吵起来"}], "bonus": false}, {"id": "Y14", "pair": "DF", "round": 1, "weight": "light", "scene": "约好一起去旅行的人，到集合口没来，也没捎个话。", "options": [{"trait": "D", "text": "回来就堵他：你什么意思，连句话都不给"}, {"trait": "F", "text": "自己走。回来也不提，只是以后不约了"}], "bonus": false}, {"id": "Y15", "pair": "EF", "round": 1, "weight": "light", "scene": "公司的聚会，连着四次没叫你。第五次，有人来问你去不去。", "options": [{"trait": "E", "text": "去。总不能让人看出来我不高兴"}, {"trait": "F", "text": "不必了。这种场合，我本来也不属于"}], "bonus": false}, {"id": "Y16", "pair": "AB", "round": 2, "weight": "light", "scene": "新来的实习生打碎了公司的东西，慌得四处张望，正好看见你。", "options": [{"trait": "A", "text": "心一下子提起来：这事会不会算到我头上"}, {"trait": "B", "text": "他刚才是不是想赖我，我得看清楚他的眼神"}], "bonus": true}, {"id": "Y17", "pair": "AC", "round": 2, "weight": "heavy", "scene": "公司要选一个人去参加年度评优，领导提了两个名字，没有你。", "options": [{"trait": "A", "text": "先想的是：是不是我最近哪里做得不好，被看见了"}, {"trait": "C", "text": "凭什么没有我。我练的不比他们少"}], "bonus": true}, {"id": "Y18", "pair": "AD", "round": 2, "weight": "light", "scene": "有人在背后说，你能进公司，靠的是家里的关系。", "options": [{"trait": "A", "text": "一晚上没睡好，反复想自己是不是真的不够格"}, {"trait": "D", "text": "找出是谁说的，当面问一句"}], "bonus": true}, {"id": "Y19", "pair": "AE", "round": 2, "weight": "heavy", "scene": "领导让你当众说说，你为什么来干这行。一屋子人等着。", "options": [{"trait": "A", "text": "喉咙发干，怕说出来的东西不够像样的"}, {"trait": "E", "text": "说一半，留一半。说太满，怕人笑"}], "bonus": true}, {"id": "Y20", "pair": "AF", "round": 2, "weight": "light", "scene": "你借出去的东西，说好七日归还，如今半个月没动静。", "options": [{"trait": "A", "text": "反复琢磨怎么开口要，怕伤了和气，又怕他不还"}, {"trait": "F", "text": "不必问了，这个人以后我心里有数"}], "bonus": true}, {"id": "Y21", "pair": "BC", "round": 2, "weight": "light", "scene": "有人在你面前数落另一个同事，说得很难听。", "options": [{"trait": "B", "text": "他现在能这么说他，明天就能这么说我"}, {"trait": "C", "text": "他凭什么这么说人，他自己又好到哪里去"}], "bonus": true}, {"id": "Y22", "pair": "BD", "round": 2, "weight": "light", "scene": "夜市小吃街上，有人撞了你一下，还回头骂了一句。", "options": [{"trait": "B", "text": "不吵。但这张脸我记住了"}, {"trait": "D", "text": "站住，问他刚才那句什么意思"}], "bonus": true}, {"id": "Y23", "pair": "BE", "round": 2, "weight": "light", "scene": "公司分东西，到你这里少了一份。发的人说，下次补。", "options": [{"trait": "B", "text": "嘴上说没事，心里认定他是故意的"}, {"trait": "E", "text": "算了，一份东西，不值得我开口"}], "bonus": true}, {"id": "Y24", "pair": "BF", "round": 2, "weight": "light", "scene": "一位不认识的前辈，主动过来指点你一句。说完拍了拍你的肩。", "options": [{"trait": "B", "text": "认真谢过，把这句话记下来"}, {"trait": "F", "text": "谢过就好。这种话听多了，也就不当真了"}], "bonus": true}, {"id": "Y25", "pair": "CD", "round": 2, "weight": "light", "scene": "公司新开一门课，说是难得的机会，但只收三个人。你去的时候，已经满了。", "options": [{"trait": "C", "text": "那三个人我看了，我不觉得他们比我强"}, {"trait": "D", "text": "找管事的问：这个名额是怎么定的"}], "bonus": true}, {"id": "Y26", "pair": "CE", "round": 2, "weight": "heavy", "scene": "你攒了一个月的东西，最后被人取走了，理由是公司更需要。", "options": [{"trait": "C", "text": "凭什么。公司需要，难道我就不需要"}, {"trait": "E", "text": "算了，公司需要就先紧着公司。"}], "bonus": true}, {"id": "Y27", "pair": "CF", "round": 2, "weight": "light", "scene": "领导从前总夸你。最近他开会夸的都是另一个人。", "options": [{"trait": "C", "text": "我哪一点不如他，我非要练到让他看见"}, {"trait": "F", "text": "他爱夸谁夸谁。我练我的，不指望他看了"}], "bonus": true}, {"id": "Y28", "pair": "DE", "round": 2, "weight": "light", "scene": "领导开会讲了半个时辰，还没讲到正题。", "options": [{"trait": "D", "text": "起身行礼，问一句正题"}, {"trait": "E", "text": "低头听着，等他自己转回来"}], "bonus": true}, {"id": "Y29", "pair": "DF", "round": 2, "weight": "light", "scene": "有人一连发了七条消息，问的却是同一件事。", "options": [{"trait": "D", "text": "回一句：讲重点"}, {"trait": "F", "text": "看见了，没回。这个人我已经懒得解释了"}], "bonus": true}, {"id": "Y30", "pair": "EF", "round": 2, "weight": "heavy", "scene": "一屋子人在说话。你进去，没人抬头。", "options": [{"trait": "E", "text": "在边上坐下。他们聊他们的，我不打断。"}, {"trait": "F", "text": "站了一会儿，转身出去。以后不来了"}], "bonus": true}]};
+window.STAGES_CLASH={"version": "1.1", "note": "15题计分（15组对撞各一轮）+5题彩蛋不计分。付费场景控制时长在3分钟内。", "stages": [{"no": "第一关", "chapter": "立身处", "stage": "金丹", "title": "金丹", "lead": "恭喜你。", "body": "经年苦修，丹成九转，凝于丹田。\n自今日起，你已非凡骨。", "tail": "下一关，问的是你敢不敢。", "order": ["Y01", "Y02", "Y03", "Y04", "Y05"]}, {"no": "第二关", "chapter": "择道处", "stage": "化神", "title": "化神", "lead": "恭喜你。", "body": "神识外放，可听百里风声，可辨人心一念。\n你终于看得清别人，也看得清自己。", "tail": "下一关，问的是你放下什么。", "order": ["Y06", "Y07", "Y08", "Y09", "Y10"]}, {"no": "第三关", "chapter": "问心处", "stage": "飞升", "title": "飞升", "lead": "恭喜你。", "body": "三关已过，雷劫已渡。\n天门开了一条缝——\n但它要你先渡过自己的心魔。", "tail": "", "ascend_title": "渡 心 魔", "order": ["Y11", "Y12", "Y13", "Y14", "Y15"]}, {"no": "终 章", "chapter": "照心", "stage": "照心", "title": "照 心", "lead": "天门在望。", "body": "最后五问，不为计分，只为照见。\n答完，命牌自现。", "tail": "", "ascend_title": "渡 心 魔", "bonus_stage": true, "order": ["Y16", "Y21", "Y26", "Y29", "Y30"]}], "ascend_note": "天上问的不是你修到哪一步，而是你身上那点过不去的东西，还在不在。"};
+window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": "那个把最坏结果先想一遍的人", "branch": "困阵", "camp": "仙门", "desc": "算过，才敢走一步", "line": "你出门之前会想，门锁了没有。<br>件事还没开始，你已经在心里把它做废了三次。", "say": "你赢在「忧」。别人还在兴奋，你已经把「万一」想完了。<br>你交出去的东西，从来不会太差——因为你提前把能踩的坑都踩过一遍。<br>你不是胆小。你只是不愿意让别人替你承担一个「没想到」。", "secret": "你的手机备忘录里存着一堆没发出去的话。<br>每次想说什么，你会先想三遍：这话会不会让人不舒服、会不会显得我很急、会不会其实不该我说。<br>想到最后，多数时候就删了。删得多了，你连「我想说」这件事都不太确定了。", "quote": "「我不是想太多，<br>我只是不敢不想。」", "mirror": "靠谱，但不好亲近。他交出来的东西几乎不出错，只是你很难知道他心里到底怎么想。", "compat": "C", "clash": "D", "with_txt": "他敢往前冲，你负责让他冲得回来。", "hard_txt": "他觉得你想太多，你觉得他根本不看路。", "pct": 3, "tier": 4, "tagline": "你把最坏的那个结果，先过了一遍。", "origin": "它是你身上最重的那股劲：「忧」。别人还在兴奋，你已经把「万一」想完了。", "price": "你交出去的东西，从来不会太差——因为你提前把能踩的坑都踩过一遍。\n你不是胆小。你只是不愿意让别人替你承担一个「没想到」。", "fame_line": "你布的阵，永远留一个出口给自己。", "fame_scene": "阵眼设了三重，最后还留了一条谁也不告诉的小路。"}, "B": {"name": "心结", "job": "符师", "role": "那个什么都记着的人", "branch": "承符", "camp": "仙门", "desc": "不吵，但心里有账", "line": "你不吵。你只是从那一天起，对他客气了一点点。<br>就一点点，别人都看不出来，只有你自己知道。", "say": "你赢在「芥蒂」。别人吵完就过去了，你不吵，但这页你没翻。<br>你会在他说话的时候多停半秒，会在分东西的时候少看他一眼——这半秒和一眼，就是你的全部表态。<br>你不是小心眼。你只是没法对一个已经让你不舒服的人，装得像什么都没发生。", "secret": "你心里有张名单，上面没写名字，只写了「哪句话」「哪一天」「谁说的」。<br>你从没打算发作——你甚至希望自己忘了。<br>可每次见到那个人，那张脸一出现，第一个字就自动跳出来了。<br>你最烦的不是他，是你自己记性这么好。", "quote": "「我不记仇。<br>我只是没办法假装不认识你。」", "mirror": "好相处，但不知道哪里差了一点。后来某天你会发现，他不再找你了。", "compat": "E", "clash": "C", "with_txt": "他愿意让，你不必开口，气氛就过去了。", "hard_txt": "他不明白你在介意什么，你也永远不会说。", "pct": 3, "tier": 4, "tagline": "你不吵，你只是从此少看了他一眼。", "origin": "它是你身上最重的那股劲：「芥蒂」。别人吵完就过去了，你不吵，但这页你没翻。", "price": "你会在他说话的时候多停半秒，会在分东西的时候少看他一眼——这半秒和一眼，就是你的全部表态。\n你不是小心眼。你只是没法对一个已经让你不舒服的人，装得像什么都没发生。", "fame_line": "你还在给他画符，只是不再画那道救命的。", "fame_scene": "他贴身的那张，到期了，你没提醒他。"}, "C": {"name": "意难平", "job": "法修", "role": "那个一直在比的人", "branch": "五行", "camp": "仙门", "desc": "他要的是赢", "line": "你说你不争。<br>可他一升职，你当晚就去翻了他的履历。", "say": "你赢在「酸」。别人还在羡慕，你已经在算差距了。<br>这股劲让你往前走了很远——你是靠不甘心长起来的那种人。<br>但你也知道，这股劲不会停：比完之后，前面还有一个人。", "secret": "你不承认自己羡慕谁。你只会说「他也没什么」——说完，晚上还是会去查他怎么做到了。<br>你怕的不是输，是有一天没人再拿你跟他比了——那说明你已经不在那个赛道上了。<br>这句话你从来没跟任何人说过。", "quote": "「我不是见不得他好。<br>我只是见不得，那个不如他的我。」", "mirror": "挺能拼，也挺容易不服。跟他共事你会安心，但你会下意识不想比他差。", "compat": "D", "clash": "B", "with_txt": "你们都要往前，只是他要说法，你要位置。", "hard_txt": "你嫌他憋着不说，他嫌你太要强。", "pct": 3, "tier": 4, "tagline": "你不是想赢他，你是不想差。", "origin": "它是你身上最重的那股劲：「酸」。别人还在羡慕，你已经在算差距了。", "price": "这股劲让你往前走了很远——你是靠不甘心长起来的那种人。\n但你也知道，这股劲不会停：比完之后，前面还有一个人。", "fame_line": "他会的法，你都要会；他不会的，你更要有。", "fame_scene": "听说他新学了一门雷法，你连夜翻了三本残卷。"}, "D": {"name": "烈意", "job": "剑修", "role": "那个当场就要说法的人", "branch": "守剑", "camp": "仙门", "desc": "不隔夜", "line": "你不隔夜。<br>不把话留到明天，也不给自己留退路。", "say": "你赢在「怒」。屋子里所有人都觉得不对，只有你开口了。<br>很多事能改，靠的就是那个先开口的人——你不是情商低，你是受不了明明不对还装作没事。<br>事后你会后悔语气，但你从不后悔开口。", "secret": "你不怕吵架。你怕的是吵完之后，那个人真的不理你了。<br>所以你的火气来得快，走得也快，快到自己都来不及体面。<br>你最难受的时刻，不是发火的时候，是发完火、安静下来、等对方回消息的那几分钟。", "quote": "「我发火，是因为我还在乎。<br>哪天真不吵了，才是完了。」", "mirror": "痛快，但不好惹。有什么说什么，跟他共事不用猜；只是有时一句话会让人下不来台。", "compat": "A", "clash": "E", "with_txt": "你出剑，他替你看剑鞘。", "hard_txt": "你当场就要说法，他当场就把话咽了。", "pct": 3, "tier": 4, "tagline": "你的话都在当场说完了，不隔夜。", "origin": "它是你身上最重的那股劲：「怒」。屋子里所有人都觉得不对，只有你开口了。", "price": "很多事能改，靠的就是那个先开口的人——你不是情商低，你是受不了明明不对还装作没事。\n事后你会后悔语气，但你从不后悔开口。", "fame_line": "你的剑比你的话快，话还没想好，剑已经出去了。", "fame_scene": "收剑的时候你才想起来：刚才那句话，说得太重了。"}, "E": {"name": "退步", "job": "炼丹师", "role": "那个总说算了的人", "branch": "水火", "camp": "仙门", "desc": "退，退成习惯", "line": "你说「算了」说得太熟练，熟练到不用想。<br>后来连你自己都分不清，是体谅，还是不敢。", "say": "你赢在「让」。有你在一桌，谁都吃得下去饭——你总能在对的时候退半步，让场面不至于难看。<br>这不是软弱，这是你在替所有人省事。<br>只是没人问过你，那半步退得疼不疼。", "secret": "你最常说的一句话是「没事」。<br>说的时候你确实是真心的——真觉得不值得争、真觉得对方更不容易。<br>但你也有过那么一两次，让完之后躲在洗手间站了一会儿，等脸上那股热退下去。<br>那两次你谁也没告诉。", "quote": "「我说算了，<br>不是因为我没意见。」", "mirror": "很好相处，就是太好说话了。你会不自觉地替他多做一点。", "compat": "B", "clash": "D", "with_txt": "你退，他接着；你们不容易吵起来。", "hard_txt": "他当众要说法，你当众把话咽了——你们互相看不惯。", "pct": 3, "tier": 4, "tagline": "「算了」这两个字，你说得太熟练了。", "origin": "它是你身上最重的那股劲：「让」。有你在一桌，谁都吃得下去饭——你总能在对的时候退半步，让场面不至于难看。", "price": "这不是软弱，这是你在替所有人省事。\n只是没人问过你，那半步退得疼不疼。", "fame_line": "你救过的人，比你争过的多得多。", "fame_scene": "那一炉本该是你的，你用它救了别人。"}, "F": {"name": "断念", "job": "刀修", "role": "那个说断就断的人", "branch": "直刀", "camp": "魔门", "desc": "不再解释", "line": "你不吵，也不问。<br>只是从那一刻起，你把这个人从心里挪出去了。", "say": "你赢在「冷」。别人还在反复纠缠，你已经退场了——不解释、不争辩、不给自己找补。<br>这是一种很干净的能力：你不把时间浪费在不会变好的人身上。<br>只是这份干脆用在自己人身上时，会有点疼。", "secret": "你不是不难过，你是难过的时候不想被看见。<br>你的「行，那就这样吧」说得越轻，心里其实越响。<br>你把所有人都想得太清楚了，清楚到你可以提前告诉他们——只是你还是希望，有一个人能追出来问一句。", "quote": "「我没生气。<br>我只是，不打算再热了。」", "mirror": "客客气气，但不熟。跟他打交道你会觉得舒服，也会觉得走不进去。", "compat": "D", "clash": "A", "with_txt": "你走，他不会拦；你回来，他也不问。", "hard_txt": "他一直在想哪里出了错，你一句都不说。", "pct": 3, "tier": 4, "tagline": "你说「行」的时候，就已经走远了。", "origin": "它是你身上最重的那股劲：「冷」。别人还在反复纠缠，你已经退场了——不解释、不争辩、不给自己找补。", "price": "这是一种很干净的能力：你不把时间浪费在不会变好的人身上。\n只是这份干脆用在自己人身上时，会有点疼。", "fame_line": "刀还挂在腰上，但你已经不用它了。", "fame_scene": "他从你面前走过，你手放在刀柄上，最后没动。"}, "AB": {"name": "自作自受", "job": "阵法师", "role": "那个怪自己比怪别人多的人", "branch": "困阵", "camp": "仙门", "desc": "什么都先算到自己头上", "line": "同一件糟心事，你的第一反应永远是：是不是我哪里做得不对。<br>别人念他，你念自己。", "say": "你赢在「忧」加「芥蒂」。别人还在找是谁的错，你已经把责任往自己身上挪了一半。<br>这让你显得很成熟——出了问题不甩锅的人，哪里都缺。<br>可你也很清楚：有一半的事，其实不是你的事。", "secret": "你很少当面嫌别人，因为一旦嫌了，你还要在心里再嫌一次自己「凭什么这么想」。<br>你两头都占着：怪他不体谅，又怪自己小心眼。<br>最后谁也没告诉，全自己扛了。", "quote": "「我不怪他。<br>我只是有点难受，又不好意思说。」", "mirror": "懂事，让人省心。但是那种「有点闷」的懂事。", "compat": "E", "clash": "D", "with_txt": "他让，你也让，场面永远不难看。", "hard_txt": "他当众一说，你就觉得这事是不是又要算到自己头上。", "pct": 11, "tier": 1, "tagline": "同一件事，你怪自己比怪他多。", "origin": "它是你身上最重的那股劲：「忧」加「芥蒂」。别人还在找是谁的错，你已经把责任往自己身上挪了一半。", "price": "这让你显得很成熟——出了问题不甩锅的人，哪里都缺。\n可你也很清楚：有一半的事，其实不是你的事。", "fame_line": "你布的阵，永远留一个出口给自己。", "fame_scene": "阵眼设了三重，最后还留了一条谁也不告诉的小路。"}, "AC": {"name": "两难", "job": "阴阳师", "role": "那个什么都算过的人", "branch": "观气", "camp": "魔门", "desc": "算得清，不敢选", "line": "你比谁都清楚自己该往哪走。<br>可你一直没动，因为哪条路你都能算出代价。", "say": "你赢在「忧」加「酸」。你能看出谁强、哪条路更值，也看得出自己差在哪。<br>这种清醒很罕见——多数人是先做，做完才知道自己输了。<br>你只是把这份清醒用在了犹豫上。", "secret": "你不是不知道该选哪条路，你是怕选了之后证明自己不行。<br>所以你会先说「再想想」，一说就是几年。<br>最难的那句是「我要」，你已经很久没说过这两个字了。", "quote": "「我不是不知道往哪走。<br>我是怕走了之后，发现我不行。」", "mirror": "看得准，但不轻易下场。跟他聊会觉得他什么都懂，久了会发现他什么都没做。", "compat": "D", "clash": "B", "with_txt": "他先动手，你负责算下一步。", "hard_txt": "他嫌你不动，你嫌他乱动。", "pct": 8, "tier": 1, "tagline": "你算得清哪条路对，就是不肯走。", "origin": "它是你身上最重的那股劲：「忧」加「酸」。你能看出谁强、哪条路更值，也看得出自己差在哪。", "price": "这种清醒很罕见——多数人是先做，做完才知道自己输了。\n你只是把这份清醒用在了犹豫上。", "fame_line": "你算完一遍，还要再算一遍。", "fame_scene": "卦象说没事，你不信，换了三个时辰重起。"}, "AD": {"name": "先手", "job": "法修", "role": "那个话到嘴边变了味的人", "branch": "五行", "camp": "仙门", "desc": "怕，就先把话顶出去", "line": "你心里其实是怕的。<br>但你先开口了——用最硬的那句，把怕盖住。", "say": "你赢在「忧」加「怒」。你能在一瞬间同时看见风险和不公，然后选择先把话顶回去。<br>很多场合需要你这种人：所有人都想息事宁人，只有你敢把盖子掀开。<br>掀完之后，你自己在厕所站了很久。", "secret": "你的火气，很多时候是提前发的。<br>你怕的是自己被看轻、被推到后面，所以先把话讲重，让人不敢轻看你。<br>这句硬话说出去之后，你其实盼着有人回一句软话。<br>很少有人接得住。", "quote": "「我嗓门大，<br>是因为我怕你听不见我。」", "mirror": "有攻击性，也有分寸。他不吃亏，但你知道他其实挺绷的。", "compat": "E", "clash": "B", "with_txt": "你一顶，他一让，事就过去了。", "hard_txt": "你一顶，他记一笔，两个人都在暗中记。", "pct": 7, "tier": 1, "tagline": "你的硬话，是拿怕垫出来的。", "origin": "它是你身上最重的那股劲：「忧」加「怒」。你能在一瞬间同时看见风险和不公，然后选择先把话顶回去。", "price": "很多场合需要你这种人：所有人都想息事宁人，只有你敢把盖子掀开。\n掀完之后，你自己在厕所站了很久。", "fame_line": "你结印结到一半，先算了这一下会不会反噬。", "fame_scene": "指诀停在最后一个，你换了最稳的那个法术，哪怕它慢一些。"}, "AE": {"name": "闷罐", "job": "炼器师", "role": "那个什么都咽下去的人", "branch": "铸心", "camp": "仙门", "desc": "怕出事，也怕给人添事", "line": "你怕，又不肯说。<br>于是所有话在肚子里过一遍，最后咽了回去。", "say": "你赢在「忧」加「让」。你很少出错，也很少得罪人——因为你在说出口之前就把风险算完了。<br>团队里最省事的那个人往往是你：不惹事、不挑事、什么都接得住。<br>也是那个最难被记得的人。", "secret": "你最怕的场面，是所有人都看着你，等你说点什么。<br>那几秒里你会想很多：说错了怎么办、说得太难听怎么办、他们会不会在背后说我不识大体。<br>于是你说「都行，听你们的」。<br>说完，心里那句真正的答案，又往后挪了一格。", "quote": "「我把话咽下去的时候，<br>是真的以为，那不重要。」", "mirror": "老实，不争。久了大家会觉得他没什么意见——其实他有。", "compat": "C", "clash": "D", "with_txt": "他在前面冲，你在后面兜。", "hard_txt": "他当众一句话，你能记三天。", "pct": 6, "tier": 2, "tagline": "话在嘴里过了三遍，最后咽回去了。", "origin": "它是你身上最重的那股劲：「忧」加「让」。你很少出错，也很少得罪人——因为你在说出口之前就把风险算完了。", "price": "团队里最省事的那个人往往是你：不惹事、不挑事、什么都接得住。\n也是那个最难被记得的人。", "fame_line": "你打好的法器，总在最后一锤前停住。", "fame_scene": "锤子举起来又放下，你怕这一锤毁了前面九十九锤。"}, "AF": {"name": "抽身", "job": "傀儡师", "role": "那个提前退场的人", "branch": "机关", "camp": "魔门", "desc": "怕到极致，就直接走", "line": "你不是不想要。<br>你是先把最坏的结局想透了，然后决定：不如不要。", "say": "你赢在「忧」加「冷」。你的判断比谁都早，退出也比谁都干脆——很多人还在纠缠，你已经在下一件事上了。<br>你很少被拖住，这点让人羡慕。<br>只是你退得太早，有时候连值得的也一起退了。", "secret": "你总说「无所谓」，其实是有所谓的。<br>只是你太早看到结局了——看到它会怎么坏、怎么散、怎么让自己难受。<br>所以你先说「算了」。<br>先退的人不疼，这话你信了很多年。", "quote": "「我先说了不要，<br>这样就不算我得不到。」", "mirror": "清醒，也冷淡。他很少投入，你很难判断他到底在不在乎。", "compat": "C", "clash": "E", "with_txt": "你们都不催，谁也不欠谁。", "hard_txt": "他还在让，你已经走了，他觉得你凉薄。", "pct": 5, "tier": 2, "tagline": "先说「不要」的人，就不会输。", "origin": "它是你身上最重的那股劲：「忧」加「冷」。你的判断比谁都早，退出也比谁都干脆——很多人还在纠缠，你已经在下一件事上了。", "price": "你很少被拖住，这点让人羡慕。\n只是你退得太早，有时候连值得的也一起退了。", "fame_line": "你的线，永远留一根不接。", "fame_scene": "傀儡还差一只手动不了，你说这样更稳。"}, "BC": {"name": "隔层", "job": "御兽师", "role": "那个谁都不得罪的人", "branch": "灵兽", "camp": "仙门", "desc": "心里有秤，嘴上不说", "line": "你对谁都不错。<br>但你对谁都没有真的近过，心里那杆秤从不给人看。", "say": "你赢在「芥蒂」加「酸」。你看人极准，谁在装、谁在抢，你一眼就知道。<br>但你不会说破——你只是悄悄把距离调好，让谁都不会难堪。<br>所以你人缘很好。好到没有一个人真的认识你。", "secret": "你不喜欢的人，你也会笑着跟他吃饭。<br>你不服的事，你也会说「挺好的」。<br>别人以为你没脾气，其实是你把脾气都放在了心里那张表上。<br>那张表你没给任何人看过。", "quote": "「我跟谁都好。<br>可我也不知道，跟谁是真的好。」", "mirror": "人缘好得没话说。但没人能说出他真正喜欢什么、讨厌什么。", "compat": "E", "clash": "D", "with_txt": "他直，你圆；他得罪的人，你替他圆回来。", "hard_txt": "他一句话撕开，你心里那笔账又多记了一条。", "pct": 7, "tier": 1, "tagline": "你对谁都不错，对谁都不近。", "origin": "它是你身上最重的那股劲：「芥蒂」加「酸」。你看人极准，谁在装、谁在抢，你一眼就知道。", "price": "但你不会说破——你只是悄悄把距离调好，让谁都不会难堪。\n所以你人缘很好。好到没有一个人真的认识你。", "fame_line": "你还喂它，只是不再摸它的头。", "fame_scene": "它凑过来蹭你，你把手背过去了。"}, "BD": {"name": "内火", "job": "炼丹师", "role": "那个笑着生气的人", "branch": "水火", "camp": "仙门", "desc": "面上没事，心里烧着", "line": "你脸上还在笑，手上还在做事。<br>只有你自己知道，那股火已经烧到嗓子眼了。", "say": "你赢在「芥蒂」加「怒」。你不吵，但你的态度会变——少一句、慢一拍、不再主动。<br>这种安静的压力，比吵架更让人不敢轻慢你。<br>你用沉默守住了体面，也把话永远留在了自己这边。", "secret": "你发火的方式很特别：不是骂人，是变得特别客气。<br>「好的」「没问题」「随便你」——这三句话一出来，懂你的人就知道你已经不高兴了。<br>可多数人不懂。<br>他们只当你脾气好。", "quote": "「我说没事的时候，<br>最好别再问第二遍。」", "mirror": "脾气好，但感觉凉了。他答应得很痛快，你也知道他其实不愿意。", "compat": "E", "clash": "A", "with_txt": "他一让，你这口气就下去了。", "hard_txt": "他还在问你哪里不舒服，你一句都不想说。", "pct": 6, "tier": 2, "tagline": "你变得特别客气那天，就是真的生气了。", "origin": "它是你身上最重的那股劲：「芥蒂」加「怒」。你不吵，但你的态度会变——少一句、慢一拍、不再主动。", "price": "这种安静的压力，比吵架更让人不敢轻慢你。\n你用沉默守住了体面，也把话永远留在了自己这边。", "fame_line": "你的丹还给他，只是不再给他最好的那一炉。", "fame_scene": "他说这丹不如从前，你说最近火候不稳。"}, "BE": {"name": "咽下", "job": "体修", "role": "那个笑着说没事的人", "branch": "外炼", "camp": "魔门", "desc": "算了，反正说了也没用", "line": "你笑着说没事，笑得特别真。<br>真到所有人都信了，包括你自己。", "say": "你赢在「芥蒂」加「让」。你比谁都清楚谁在占便宜，但你还是让了——不是看不出来，是觉得撕破不值得。<br>你替所有人省了麻烦，也替自己省了冲突。<br>省下来的那些，全进了心里那个不打开的抽屉。", "secret": "你不是没脾气，你是把脾气攒着。<br>攒到某个小事上——一双没放好的鞋、一句随口的抱怨——你会突然很想哭，然后自己也说不清为什么。<br>那其实是前面很多次「算了」一起到期了。", "quote": "「我不生气。<br>我只是有点累，说不清为什么。」", "mirror": "好脾气，能扛事。你从没见过他发火，所以你也不太确定他会不会。", "compat": "B", "clash": "D", "with_txt": "他记着，你让着，两个人都不用说破。", "hard_txt": "他一吵，你更不想说了。", "pct": 5, "tier": 2, "tagline": "你说没事的时候，是真的以为没事。", "origin": "它是你身上最重的那股劲：「芥蒂」加「让」。你比谁都清楚谁在占便宜，但你还是让了——不是看不出来，是觉得撕破不值得。", "price": "你替所有人省了麻烦，也替自己省了冲突。\n省下来的那些，全进了心里那个不打开的抽屉。", "fame_line": "你还和他一起淬体，只是不再比谁先起来。", "fame_scene": "他起不来的时候，你没有伸手。"}, "BF": {"name": "客气", "job": "符师", "role": "那个从此客气的人", "branch": "承符", "camp": "仙门", "desc": "不吵，直接退成外人", "line": "你没吵架，也没拉黑。<br>只是从那以后，你跟他说话开始用「您」。", "say": "你赢在「芥蒂」加「冷」。你处理关系的方式极干净：不撕破，但也不回头。<br>你不会给别人难堪，也不给自己留纠缠的余地。<br>这是很成熟的断法——只是对方往往到最后都不知道，是哪一天开始的。", "secret": "你走的时候一点动静都没有。<br>你照样回消息、照样点赞，只是不再多说一句。<br>你希望有人能发现，可你也知道，能发现的人一开始就不会让你走到这一步。", "quote": "「我没生气。<br>我只是不想再麻烦你了。」", "mirror": "礼貌，周到，也疏远。他对谁都客客气气，你分不清他是不是不喜欢你。", "compat": "D", "clash": "E", "with_txt": "他一闹，你一退；事情很快就结束了。", "hard_txt": "他还在让，你已经退成外人了。", "pct": 4, "tier": 3, "tagline": "你跟他说话改用「您」的那天，就结束了。", "origin": "它是你身上最重的那股劲：「芥蒂」加「冷」。你处理关系的方式极干净：不撕破，但也不回头。", "price": "你不会给别人难堪，也不给自己留纠缠的余地。\n这是很成熟的断法——只是对方往往到最后都不知道，是哪一天开始的。", "fame_line": "你还在给他画符，只是不再画那道救命的。", "fame_scene": "他贴身的那张，到期了，你没提醒他。"}, "CD": {"name": "争位", "job": "剑修", "role": "那个不肯认输的人", "branch": "守剑", "camp": "仙门", "desc": "明着争，也明着不服", "line": "你不藏着掖着。<br>不服就是不服，凭什么是你，我要问一句。", "say": "你赢在「酸」加「怒」。你不甘心的时候，会直接去要——不背后说，不暗着比，直接问凭什么。<br>这种人少见：多数人不甘的时候只会嘀咕。<br>你的输赢都摆在桌面上，这一点很干净。", "secret": "你不怕输，你怕输得不明不白。<br>所以你要问一句「为什么是他」，不是为了翻盘，是为了知道自己差在哪。<br>可这一问，在别人眼里就成了「不服气」。<br>你懒得解释，反正解释了也不像。", "quote": "「我不是输不起。<br>我是想知道，我差在哪。」", "mirror": "要强，也直。跟他共事你会被推着往前走，也会被他的胜负心压到。", "compat": "E", "clash": "B", "with_txt": "你争，他让；你要的那个位置，他才给得起。", "hard_txt": "你说出来，他记下来，两个人都没过去。", "pct": 5, "tier": 2, "tagline": "你不服就问，哪怕问完更难看。", "origin": "它是你身上最重的那股劲：「酸」加「怒」。你不甘心的时候，会直接去要——不背后说，不暗着比，直接问凭什么。", "price": "这种人少见：多数人不甘的时候只会嘀咕。\n你的输赢都摆在桌面上，这一点很干净。", "fame_line": "你练得比谁都狠，只为了让他看见。", "fame_scene": "他夸了别人一句剑意好，你当晚在后山练到天亮。"}, "CE": {"name": "暗涌", "job": "灵植师", "role": "那个嘴上说好、心里不服的人", "branch": "灵木", "camp": "仙门", "desc": "笑着咽，咽不下", "line": "你说「行啊，挺好的」，说得特别自然。<br>然后一个人在夜里把这件事想了一百遍。", "say": "你赢在「酸」加「让」。你比谁都知道自己该得到什么，但你不去要——你怕争的样子难看。<br>于是你把不甘心包好，笑着说恭喜。<br>这份体面你维持得很好，只是维持得很累。", "secret": "你恭喜他的时候是真心的，难过也是真心的。<br>这两件事同时存在，你从来没跟人解释过——因为在别人看来，它们不该同时存在。<br>你说「我不在乎」，其实你在乎得要命。", "quote": "「恭喜你。<br>……真的。」", "mirror": "大方，体面。她从不为难人，你也看不出她心里到底怎么想。", "compat": "D", "clash": "B", "with_txt": "他替你把不敢说的话说了，你在旁边松一口气。", "hard_txt": "他一张嘴，你就得替他圆场，圆完更累。", "pct": 4, "tier": 3, "tagline": "恭喜说得越真心，心里越不好受。", "origin": "它是你身上最重的那股劲：「酸」加「让」。你比谁都知道自己该得到什么，但你不去要——你怕争的样子难看。", "price": "于是你把不甘心包好，笑着说恭喜。\n这份体面你维持得很好，只是维持得很累。", "fame_line": "他种出来的，你也要种得更好。", "fame_scene": "听说他那株成了气候，你把自己的拔了重栽。"}, "CF": {"name": "撤手", "job": "符师", "role": "那个主动下场的人", "branch": "承符", "camp": "仙门", "desc": "比不过，就不比了", "line": "你不是不在乎。<br>你是先看清了比不过，然后决定：那我不要了。", "say": "你赢在「酸」加「冷」。你判断得快，撤得也快——不纠缠、不犯贱、不给自己难堪。<br>很多人耗在一场赢不了的比较里好几年，你三个月就出来了。<br>这份清醒保护了你，也让你少要了很多东西。", "secret": "你的「我不稀罕」说得特别响，响得自己都差点信了。<br>其实你早就想好了，如果那个人回头，你还是会答应。<br>只是你更怕的是——他根本不回头。", "quote": "「我不是不想要。<br>我是不想再要一次，然后又要不到。」", "mirror": "要强，也放得下。她输得起，你也别指望她会为了什么留下来。", "compat": "E", "clash": "D", "with_txt": "他还在争，你已经退到下一件事上了。", "hard_txt": "他非要问清楚，你一句都不想答。", "pct": 4, "tier": 3, "tagline": "「我不稀罕」，说得连你自己都快信了。", "origin": "它是你身上最重的那股劲：「酸」加「冷」。你判断得快，撤得也快——不纠缠、不犯贱、不给自己难堪。", "price": "很多人耗在一场赢不了的比较里好几年，你三个月就出来了。\n这份清醒保护了你，也让你少要了很多东西。", "fame_line": "你画的符，要盖过他的名声。", "fame_scene": "听说他的符被人求到门上，你把笔换了新的，从头练起。"}, "DE": {"name": "憋气", "job": "体修", "role": "那个当场没说话的人", "branch": "外炼", "camp": "魔门", "desc": "当场咽了，回家想一夜", "line": "当场你没开口。<br>回家的路上，你把该说的那句话，在心里说了二十遍。", "say": "你赢在「怒」加「让」。你其实很硬，只是你的硬来得比嘴慢半拍。<br>当场你会顾及场面，事后你一句都不会忘。<br>所以你很少真的吃亏——你只是在下一回把话补上。", "secret": "你最后悔的从来不是吵架，是没吵。<br>那句「我当时应该说……」会在你脑子里反复播放，配上对方的表情、语气、当时的灯光。<br>你甚至已经想好了下一回怎么回。<br>只是下一回，人已经不在那个场景里了。", "quote": "「我当时应该说……<br>算了。每次都这样。」", "mirror": "看着好说话，其实很硬。真要被踩到底线，他会比谁都狠。", "compat": "A", "clash": "F", "with_txt": "他会替你把风险算好，你才敢开口。", "hard_txt": "他一声不响就走了，你还在原地想那句话。", "pct": 4, "tier": 3, "tagline": "该说的话，你在回家的路上说了二十遍。", "origin": "它是你身上最重的那股劲：「怒」加「让」。你其实很硬，只是你的硬来得比嘴慢半拍。", "price": "当场你会顾及场面，事后你一句都不会忘。\n所以你很少真的吃亏——你只是在下一回把话补上。", "fame_line": "你的拳头比你的脑子先动。", "fame_scene": "手已经出去了，你才想起来这是门里的长辈。"}, "DF": {"name": "两断", "job": "刀修", "role": "那个转身就走的人", "branch": "直刀", "camp": "魔门", "desc": "要么吵，要么走", "line": "你要么吵一架，要么不再来往。<br>中间那条「先忍忍」的路，你走不了。", "say": "你赢在「怒」加「冷」。你的界线特别清楚：说了不听，那就到此为止。<br>很多人做不到这一点——他们会一边生气一边继续相处，耗好几年。<br>你一刀切下去，干净，也冷。", "secret": "你走得很决绝，决绝到自己都相信了。<br>但你会记得那天的天气、那句话说出口时对方的眼神。<br>你不回头，是为了不让自己后悔——不是因为不疼。", "quote": "「要么你现在听我说完，<br>要么我们以后都不用说了。」", "mirror": "干脆，也绝。他不留余地，你也就不会去试探他的底线。", "compat": "E", "clash": "A", "with_txt": "他一让，你这一刀就落不下去。", "hard_txt": "他还在算哪里出了错，你已经走了。", "pct": 3, "tier": 4, "tagline": "你要么现在听我说完，要么以后都不用说了。", "origin": "它是你身上最重的那股劲：「怒」加「冷」。你的界线特别清楚：说了不听，那就到此为止。", "price": "很多人做不到这一点——他们会一边生气一边继续相处，耗好几年。\n你一刀切下去，干净，也冷。", "fame_line": "你的刀不认人，只认当下那口气。", "fame_scene": "砍完才发现，对面那个人其实没做错什么。"}, "EF": {"name": "不还", "job": "傀儡师", "role": "那个不吵也不还手的人", "branch": "机关", "camp": "魔门", "desc": "算了，连账都不记了", "line": "你不吵，也不记。<br>不是原谅了，是觉得连记账都费劲。", "say": "你赢在「让」加「冷」。你很少让场面难看过，也很少让自己陷进去。<br>你会安静地退到一边，把力气留给自己——这一点很聪明。<br>只是退得太多次之后，「想要」这件事你也不太会了。", "secret": "你退的时候不是不难受，是觉得说了也没用。<br>所以你把所有「本来想说」都换成了「都行」。<br>时间长了，别人问你想吃什么，你要愣一下——这个问题，你已经很久没认真回答过了。", "quote": "「都行。<br>真的，我什么都行。」", "mirror": "随和，也远远的。他从不麻烦人，你也就很难走近他。", "compat": "C", "clash": "D", "with_txt": "你们都不争，事情永远不会闹大。", "hard_txt": "他非要当场说清楚，你只想安静。", "pct": 3, "tier": 4, "tagline": "连账都懒得记了，才是真的退了。", "origin": "它是你身上最重的那股劲：「让」加「冷」。你很少让场面难看过，也很少让自己陷进去。", "price": "你会安静地退到一边，把力气留给自己——这一点很聪明。\n只是退得太多次之后，「想要」这件事你也不太会了。", "fame_line": "你躲在幕后，不是不想上台，是不敢。", "fame_scene": "所有人夸这个傀儡做得真好，你站在后面没说话。"}}, "quotes": {"pool": {"仙门.剑修": {"A": ["你手里那把剑，从来不是为了赢别人。", "你专注的样子，本身就是一种光。", "认准一件事就往前走的你，很稀缺。"], "B": ["不必时刻锋利，收剑的时候你也在修。", "你不需要证明什么，你本来就在那里。", "稳一点没关系，你的剑不会钝。"], "C": ["剑还没出鞘，不代表它不在。", "累了就把剑放下，山还在，你也还在。", "你只是暂时不想打了，不是打不动了。"]}, "魔门.剑修": {"A": ["你早就不指望被理解了，所以你走得比谁都快。", "你的锋芒不是脾气，是你活下来的证据。", "别人眼里的孤僻，是你自己选的清净。"], "B": ["不解释，也是一种体面。", "你有你的规矩，只是没写在明面上。", "你不需要跟谁并肩，你自己就是一支队伍。"], "C": ["剑太重就先背着，不必非要举着。", "你不是变冷了，你是学会了省着力气活。", "那些没人知道的咬牙，都算数。"]}, "仙门.刀修": {"A": ["别人还在犹豫，你已经走出去了。", "你的干脆，是替自己省下的时间。", "敢先动手的人，才有资格谈结果。"], "B": ["不必每一刀都落，收得住才是本事。", "你不是冲动，你是知道什么时候该动。", "缓一缓不丢人，刀在手里就好。"], "C": ["刀可以钝，人不能垮。", "这一刀砍不动，就先绕过去。", "你不是没力气了，你只是想歇口气。"]}, "魔门.刀修": {"A": ["你从不拖泥带水，所以你先到。", "你下手快，是因为你想得早。", "别人在纠结的时候，你已经过了那道坎。"], "B": ["不必每一场都赢，收刀也是本事。", "你有你的章法，不必跟谁解释。", "你不需要被点赞，你只需要自己认。"], "C": ["刀放下不丢人，活着才要紧。", "你不是砍不动了，你只是不想再耗。", "这一刀没砍成，下一刀再说。"]}, "仙门.法修": {"A": ["你看得懂规则，所以你能用规则。", "你不靠蛮力，你靠看得清楚。", "别人慌乱的时候，你已经在算下一步。"], "B": ["想清楚再动，从来不是慢。", "你不需要大声，你本来就站得稳。", "清醒的人少，所以你格外珍贵。"], "C": ["看不明白的时候就先别看，风会停。", "太累的时候，允许自己不想那么多。", "你不是没答案，你只是需要休息。"]}, "魔门.法修": {"A": ["你看得懂人心，所以你不吃暗亏。", "你的冷静，是别人学不来的护身符。", "你不吵不闹，但没人骗得了你。"], "B": ["不必把话说透，你已经够聪明了。", "你不需要向谁证明你有脑子。", "你看得太清，所以可以选择不说。"], "C": ["今天不想算计了，就什么都别管。", "你太清醒了，允许自己糊涂一次。", "你不需要时时提防，至少今晚不用。"]}, "仙门.体修": {"A": ["你靠的不是天赋，是没趴下。", "别人看到的是结果，你自己知道每一寸是怎么练出来的。", "你这种咬着牙往前的人，早晚会赢。"], "B": ["不用一直硬撑，能歇的时候也是本事。", "你比自己以为的更有力气。", "慢一点，你的根基比谁都稳。"], "C": ["你今天扛不动了，那就放下来，这不叫输。", "撑了这么久，你已经很了不起。", "身体比道理重要，先照顾好自己。"]}, "魔门.体修": {"A": ["你靠的是自己，一寸一寸练出来的那种。", "别人看到你赢了，只有你知道代价。", "你这种人，不会被谁打败。"], "B": ["不用一直硬撑，能歇也是一种强。", "你比自己以为的还结实。", "你不需要证明什么，你一直在这里。"], "C": ["扛了这么久，先放下吧，不丢人。", "你也会有撑不住的时候，这很正常。", "你不是输了，你只是太久没歇。"]}, "仙门.炼丹师": {"A": ["你把苦的熬成有用的，这是别人学不来的。", "你能等，所以你能成。", "你手里那些慢功夫，最后都会开花。"], "B": ["火候这种东西，急不来，你也知道。", "你已经在做对的事了，剩下的交给时间。", "不必天天有结果，你在熬就是在走。"], "C": ["炉子可以熄，人不能亏。", "熬不出东西的日子，也是在养自己。", "累了就歇，好药都要慢慢来。"]}, "魔门.炼丹师": {"A": ["你能把苦的熬成有用的，这是真本事。", "你不怕等，所以你拿到了别人拿不到的。", "你的耐心，比谁都硬。"], "B": ["火候急不来，你比谁都清楚。", "你已经在往对的方向熬了。", "不必天天有结果，你在熬就是在走。"], "C": ["炉子可以熄，人不能亏。", "熬不出东西的日子，也是在养自己。", "你的苦，不会白吃，但今天先歇。"]}, "仙门.炼器师": {"A": ["你相信手上的东西会成，所以它真的成了。", "别人要捷径，你要的是对得起自己。", "你打出来的每一下，都在把自己敲硬。"], "B": ["慢工出细活，你比谁都懂这句话。", "不必天天出成品，你在磨就够了。", "你的手艺，是你给自己的底气。"], "C": ["打不动就先放下锤子，铁不会跑。", "你已经很用力了，允许自己钝一会儿。", "修东西的人，也要记得修自己。"]}, "魔门.炼器师": {"A": ["你不信天赋，你信手上的茧。", "你打出来的每一下，都在把自己敲硬。", "别人要捷径，你要的是对得起自己。"], "B": ["慢工出细活，这话在你身上是真的。", "不必天天出成品，你在磨就够了。", "你的手艺，是你最硬的底气。"], "C": ["打不动就先放下锤子，铁不会跑。", "你已经很用力了，允许自己钝一会儿。", "修东西的人，也要记得修自己。"]}, "仙门.符师": {"A": ["你把混乱整理成可以用的东西，这是天赋。", "你的每一步都算得清楚，所以你不慌。", "别人觉得麻烦的事，你做得井井有条。"], "B": ["不必事事周全，留一点空白也很好。", "你已经在自己的节奏里了，别急着改。", "秩序不是束缚，是你给自己铺的路。"], "C": ["乱了就先停下，重新排一次就好。", "你今天不想整理，那就放着，明天再说。", "你已经撑很久了，允许自己乱一次。"]}, "魔门.符师": {"A": ["你把最乱的东西理得最顺，这是狠本事。", "你出手之前，已经想好了退路。", "你以为你在布阵，其实你在保护自己。"], "B": ["不必事事都握在手里，松一点也很好。", "你有你的规则，不必谁都懂。", "你已经在很好地掌控了，别太紧。"], "C": ["今天不想算就不算，天下不至于塌。", "你憋了太久，允许自己乱一次。", "你不需要每件事都有对策。"]}, "仙门.阵法师": {"A": ["别人看今天，你看三步之后。", "你铺的每一步，后来都成了路。", "你不着急，因为你算得清。"], "B": ["不急，你的局才铺到一半。", "你不需要被看见，你在攒。", "慢慢来，好的阵都是一笔一笔画的。"], "C": ["阵没画完也没关系，明天还在。", "看不清楚的时候，就先停笔。", "你已经走了很远，不用逼自己加速。"]}, "魔门.阵法师": {"A": ["别人看今天，你看三步之后。", "你不着急，因为你算得清。", "你铺的每一步，后来都成了路。"], "B": ["不急，你的局才铺到一半。", "你不需要被看见，你在攒。", "好的阵，都是一笔一笔画的。"], "C": ["阵没画完也没关系，明天还在。", "看不清楚的时候，就先停笔。", "你已经走了很远，不用逼自己加速。"]}, "仙门.御兽师": {"A": ["你能读懂别人没说出口的话，这是稀有的事。", "你能让怕你的东西靠近你，这不简单。", "你的温柔里带着底气，所以有分量。"], "B": ["不必时时照顾所有人，也照顾照顾自己。", "你懂别人，也别忘了懂自己。", "你已经在很好地相处了，慢慢来。"], "C": ["你今天不想哄谁了，那就先不管。", "读懂别人的你很累吧，歇一会儿。", "不是所有人都需要你，你不用负责所有人。"]}, "魔门.御兽师": {"A": ["你能让最凶的东西服你，靠的不是鞭子。", "你看得懂别人眼里的怕，这是少见的能力。", "你的温柔里带着刀，所以有分量。"], "B": ["不必时时防着所有人，也松一口气。", "你懂别人，也别忘了懂自己。", "你已经在很好地掌控了，别太紧。"], "C": ["你今天不想管谁了，那就先不管。", "一直懂别人的你，很累吧。", "不是所有人都值得你去读，你不用负责所有人。"]}, "仙门.傀儡师": {"A": ["你在细节里建立秩序，这是真本事。", "别人看不到的地方，你都做对了。", "你的稳，是给出来的。"], "B": ["不必事事完美，一点点毛刺也很好。", "你已经在做很难的事了，别苛责自己。", "你的细心，早晚会有人看见。"], "C": ["今天调不好就放着，明天手更稳。", "你已经很认真了，允许自己不完美。", "精密的活儿最耗人，先喘口气。"]}, "魔门.傀儡师": {"A": ["你能让死的东西动起来，这是真本事。", "别人看不到的地方，你都做对了。", "你的稳，是给出来的。"], "B": ["不必事事完美，一点点毛刺也很好。", "你已经在做很难的事了，别苛责自己。", "你的细心，早晚有人看得见。"], "C": ["今天调不好就放着，明天手更稳。", "你已经很认真了，允许自己不完美。", "精密的活儿最耗人，先喘口气。"]}, "魔门.阴阳师": {"A": ["你看得比别人早，所以你不慌。", "你看透了，却还愿意好好活，这很难。", "你的清醒，是你最锋利的部分。"], "B": ["不必什么都看透，糊涂一点也很好。", "你已经知道答案了，只是还没点头。", "慢一点，你不必替所有人先看见。"], "C": ["看得太清会累，允许自己闭一会儿眼。", "今天的卦不算也没关系。", "你不是想太多，你是太久没歇了。"]}, "仙门.灵植师": {"A": ["你让东西慢慢长起来，这是最了不起的能力。", "你照顾过的东西，都记得你。", "你的耐心，是别人抢不走的。"], "B": ["不必天天看得见长，它在长。", "你在做一件很温柔的事，别怀疑它。", "你的节奏刚刚好，不用跟别人比。"], "C": ["今天不想浇水，那就明天。", "你也需要被照顾，这不丢人。", "枯一阵没关系，根还在。"]}, "魔门.灵植师": {"A": ["你能让最毒的东西为你开花，这是本事。", "你照顾过的东西，都记得你。", "你的耐心，是别人抢不走的。"], "B": ["不必天天看得见长，它在长。", "你做的事很温柔，只是别人看不懂。", "你的节奏刚刚好，不用跟谁比。"], "C": ["今天不想管它们，那就明天。", "你也需要被照顾，这不丢人。", "枯一阵没关系，根还在。"]}, "仙门.天命师": {"A": ["你比别人早看见一步，所以你不慌。", "你看得透，但你还愿意好好活。", "你的清醒，是你最亮的部分。"], "B": ["不必什么都看透，糊涂一点也很好。", "你已经知道答案了，只是还在等自己点头。", "慢一点，你不必替所有人先看见。"], "C": ["看得太清会累，允许自己闭一会儿眼。", "今天的卦不算也没关系。", "你不是想太多，你是太久没休息了。"]}}, "fallback": ["这一路你已经做得够好了。", "你比你以为的更结实。", "今天无论测出什么，都不影响你明天继续。", "你不必光芒万丈，温暖有光就好。", "慢也好，步子小也好，是在往前走就好。", "你已经很棒了，别再为难自己。", "你未必出类拔萃，但一定与众不同。", "允许一切发生，才是真正的强大。", "世界太吵，记得听自己的心。", "好好爱自己，是终身浪漫的开始。"]}};
+</script>
+<script>
+/* 对撞式问答 + 境界关卡演示：立誓 → 三关（金丹/化神/飞升）→ 飞升揭晓反差 */
+(function () {
+  var DB = null, ST = null;
+  var state = { camp: '', job: '', idx: 0, flat: [], counts: {}, pairWins: {}, lock: false, stage: 0 };
+  var $ = function (s) { return document.querySelector(s); };
+  var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
+
+  var JOBS = ['剑修', '刀修', '法修', '体修', '炼丹师', '炼器师', '符师', '阵法师', '御兽师', '傀儡师', '阴阳师', '灵植师'];
+
+  /* ---------- 命格文案（现实译本，由 stories 数据注入） ---------- */
+  var PERSONA = {}, COMBO32 = {}, QUOTES = null;
+  function loadPersona() {
+    var P = (window.STORIES && window.STORIES.persona) || {};
+    QUOTES = (window.STORIES && window.STORIES.quotes) || null;
+    Object.keys(P).forEach(function (k) {
+      var v = P[k];
+      if (k.length === 1) PERSONA[k] = v; else COMBO32[k] = v;
+    });
+  }
+
+  /* ---------- 载入：优先内联（单文件可跑），否则 fetch ---------- */
+  function boot(db, st) {
+    DB = db; ST = st;
+    loadPersona();
+    buildFlat();
+    initPledge();
+  }
+  if (window.CLASH_DATA && window.STAGES_CLASH) {
+    boot(window.CLASH_DATA, window.STAGES_CLASH);
+  } else {
+    Promise.all([
+      fetch('../data/clash.json').then(function (r) { return r.json(); }),
+      fetch('../data/stages_clash.json').then(function (r) { return r.json(); })
+    ]).then(function (res) { boot(res[0], res[1]); }).catch(function (e) {
+      document.body.innerHTML = '<p style="padding:40px 20px;font-size:13px;color:#A8442F">题库载入失败：' + e.message + '</p>';
+    });
+  }
+
+  // 调试钩子（不影响正常使用）
+  window.__clash = function () {
+    return { state: state, PERSONA: PERSONA, COMBO32: COMBO32,
+             compute: function () { compute(); return 'computed'; } };
+  };
+
+  // 打平成一个线性题序，并记住每题属于第几关
+  function buildFlat() {
+    var map = {};
+    DB.questions.forEach(function (q) { map[q.id] = q; });
+    state.flat = [];
+    ST.stages.forEach(function (st, si) {
+      st.order.forEach(function (qid) {
+        var q = map[qid];
+        state.flat.push({ q: q, stage: si });
+      });
+    });
+  }
+
+  function initPledge() {
+    $('#totalNo').textContent = state.flat.length;
+
+    $$('.camp-t').forEach(function (b) {
+      b.addEventListener('click', function () {
+        state.camp = b.dataset.camp;
+        $$('.camp-t').forEach(function (x) { x.classList.toggle('on', x === b); });
+        refreshJobNames();
+        checkGo();
+      });
+    });
+
+    var jl = $('#jobList');
+    JOBS.forEach(function (j) {
+      var b = document.createElement('button');
+      b.className = 'job-t';
+      b.dataset.job = j;
+      b.textContent = j;
+      b.addEventListener('click', function () {
+        state.job = j;
+        $$('.job-t').forEach(function (x) { x.classList.toggle('on', x === b); });
+        checkGo();
+      });
+      jl.appendChild(b);
+    });
+
+    $('#btnGo').addEventListener('click', startQuiz);
+    $('#btnAgain').addEventListener('click', startQuiz);
+    $('#btnHome').addEventListener('click', function () { show('scPledge'); $('#progFill').style.width = '0%'; });
+    $('#btnNext').addEventListener('click', nextStage);
+    $('#btnAscend').addEventListener('click', compute);
+  }
+
+  /* 选了门派之后，职业按钮的名字要跟着变（仙门·天命师 / 魔门·阴阳师） */
+  function refreshJobNames() {
+    $$('.job-t').forEach(function (b) {
+      b.textContent = state.camp ? jobName(b.dataset.job, state.camp) : b.dataset.job;
+    });
+  }
+
+  function checkGo() { $('#btnGo').disabled = !(state.camp && state.job); }
+  function show(id) {
+    $$('.screen').forEach(function (s) { s.classList.toggle('on', s.id === id); });
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- 答题 ---------- */
+  function startQuiz() {
+    state.idx = 0; state.stage = 0; state.lock = false;
+    state.counts = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+    state.stageLog = [];   // 每关心性分布，用于结果页三关战绩
+    state.stageCounts = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+    state.pairWins = {};
+    $('#sacredStage').textContent = ST.stages[0].stage;
+    show('scQuiz');
+    render();
+  }
+
+  function render() {
+    var item = state.flat[state.idx];
+    var q = item.q, si = item.stage;
+    var st = ST.stages[si];
+    var inStage = state.flat.filter(function (x) { return x.stage === si; });
+    var pos = inStage.indexOf(item) + 1;
+
+    if (item._started === undefined && si !== state.stage) {}
+    state.stage = si;
+
+    $('#nowNo').textContent = state.idx + 1;
+    $('#progFill').style.width = (state.idx / state.flat.length * 100) + '%';
+    $('#sacredStage').textContent = st.stage;
+    $('#qzPhase').textContent = st.no + ' · ' + st.chapter + ' · ' + pos + '/' + inStage.length;
+    $('#qzScene').textContent = q.scene;
+
+    var box = $('#qzOpts');
+    box.innerHTML = '';
+    box.style.animation = 'none';
+    void box.offsetWidth;
+    box.style.animation = 'qin .38s var(--ease)';
+
+    var marks = ['甲', '乙'];
+    q.options.forEach(function (op, i) {
+      var b = document.createElement('button');
+      b.className = 'cl-opt';
+      b.innerHTML = '<span class="om">' + marks[i] + '</span><span>' + op.text + '</span>';
+      b.addEventListener('click', function () { pick(q, op, b, true); });
+      box.appendChild(b);
+    });
+
+    var nb = document.createElement('button');
+    nb.className = 'cl-opt none';
+    nb.innerHTML = '<span class="om">·</span><span>这两个都不像我</span>';
+    nb.addEventListener('click', function () { pick(q, { trait: 'N' }, nb, false); });
+    box.appendChild(nb);
+  }
+
+  function pick(q, op, btn, isReal) {
+    if (state.lock) return;
+    state.lock = true;
+    btn.classList.add('chosen');
+    if (navigator.vibrate) { try { navigator.vibrate(8); } catch (e) {} }
+    if (isReal && !q.bonus) {
+      state.counts[op.trait]++;
+      state.pairWins[q.pair] = op.trait;
+    }
+
+    setTimeout(function () {
+      state.idx++;
+      state.lock = false;
+      if (state.idx >= state.flat.length) {
+        $('#progFill').style.width = '100%';
+        showAscend();
+      } else if (state.flat[state.idx].stage !== state.stage) {
+        showStageClear(state.stage);
+      } else {
+        render();
+      }
+    }, 320);
+  }
+
+  /* ---------- 境界结算 ---------- */
+  function showStageClear(si) {
+    var st = ST.stages[si];
+    state.stageLog.push({ no: st.no, stage: st.title, counts: snapshotStage() });
+    $('#scNo').textContent = st.no + ' · ' + st.chapter + ' 已过';
+    $('#scTitle').textContent = st.title;
+    $('#scLead').textContent = st.lead;
+    $('#scBody').innerHTML = st.body.replace(/\n/g, '<br>');
+    $('#scTail').textContent = st.tail;
+    // 进度点
+    var dots = $('#scDots');
+    dots.innerHTML = '';
+    ST.stages.forEach(function (x, i) {
+      var d = document.createElement('i');
+      d.className = 'dot' + (i <= si ? ' on' : '');
+      dots.appendChild(d);
+    });
+    show('scStage');
+  }
+
+  /* 当前这一关的累计 - 之前记录的累计 = 本关分布 */
+  function snapshotStage() {
+    var base = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+    state.stageLog.forEach(function (x) {
+      ORDER.forEach(function (k) { base[k] += x.counts[k]; });
+    });
+    ORDER.forEach(function (k) { state.stageCounts[k] = state.counts[k] - base[k]; });
+    return JSON.parse(JSON.stringify(state.stageCounts));
+  }
+
+  function nextStage() {
+    state.stage = state.flat[state.idx].stage;
+    show('scQuiz');
+    render();
+  }
+
+  /* ---------- 飞升 ---------- */
+  function showAscend() {
+    var last = ST.stages[ST.stages.length - 1];
+    // 最后一关的分布也入日志，结果页三关战绩才齐
+    var base = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+    state.stageLog.forEach(function (x) { ORDER.forEach(function (k) { base[k] += x.counts[k]; }); });
+    var lc = {};
+    ORDER.forEach(function (k) { lc[k] = state.counts[k] - base[k]; });
+    if (!last.bonus_stage) state.stageLog.push({ no: last.no, stage: last.title, counts: lc });
+
+    $('#ascTitle').textContent = last.ascend_title || last.title;
+    $('#ascBody').innerHTML = last.body.replace(/\n/g, '<br>');
+    $('#ascNote').textContent = ST.stages ? (ST.ascend_note || '') : '';
+    show('scAscend');
+  }
+
+  /* ---------- 计分与反差 ---------- */
+  var ORDER = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+  function rank() {
+    return ORDER.slice().sort(function (a, b) {
+      if (state.counts[a] !== state.counts[b]) return state.counts[b] - state.counts[a];
+      var k = [a, b].sort().join('');
+      var w = state.pairWins[k];
+      if (w === a) return -1;
+      if (w === b) return 1;
+      return 0;
+    });
+  }
+
+  function compute() {
+    var sorted = rank();
+    var top = sorted[0], second = sorted[1];
+    var topN = state.counts[top], secN = state.counts[second];
+    var close = (topN - secN) <= 1;   // 15题计分下平手阈值收紧到1
+    var comboKey = close ? [top, second].sort().join('') : null;
+    var persona = close ? (COMBO32[comboKey] || genericCombo(top, second)) : PERSONA[top];
+    renderResult(persona, top, second);
+  }
+
+  /* 两性分差 ≤2 但没配现成命格时的兜底：用两者各自的金句拼一张新命格 */
+  function genericCombo(a, b) {
+    var pa = PERSONA[a], pb = PERSONA[b];
+    return {
+      job: pb.job, branch: pb.branch, camp: pb.camp,
+      header: pa.job + ' × ' + pb.job,
+      line: '你身上同时有两个人的活法。<br>' + stripHTML(pa.line) + '，<br>可有时候又' + stripHTML(pb.line) + '。',
+      say: pa.say.split('\n')[0] + '\n' + pb.say.split('\n')[0] + '\n所以你偶尔觉得自己自相矛盾——其实只是两套活法你都太熟练了。',
+      secret: '你身上「' + DB.traits[a].name + '」和「' + DB.traits[b].name + '」各占一半，谁也压不住谁。\n多数时候你自己也分不清，当下那个反应到底是哪一个先动的手。\n打平不是缺点。你只是比一般人多了半个自己，也多了半个自己要在深夜里说服。',
+      quote: pb.quote
+    };
+  }
+
+  /* 文案里用 \n 分段，渲染成多个 <p>，避免一整块墙 */
+  function toParas(t, cls) {
+    return String(t).split('\n').filter(Boolean).map(function (line) {
+      return '<p class="' + (cls || 'b-para') + '">' + line + '</p>';
+    }).join('');
+  }
+
+  function stripHTML(t) {
+    return String(t).replace(/<br\s*\/?>/g, '').replace(/\n/g, '');
+  }
+
+  function renderResult(p, top, second) {
+    show('scResult');
+
+    var realJob = p.job, realCamp = p.camp;
+    var jobOk = (realJob === state.job);
+    var campOk = (realCamp === state.camp);
+
+    // 四档反差
+    var tag = $('#rsTag'), cls = 'rs-tag';
+    if (jobOk && campOk) { tag.textContent = '誓 约 大 成'; cls += ' ok'; }
+    else if (campOk && !jobOk) { tag.textContent = '同 门 殊 途'; cls += ' mid'; }
+    else if (!campOk && jobOk) { tag.textContent = '弃 暗 投 明'; cls += ' flip'; }
+    else { tag.textContent = '另 有 天 命'; cls += ' big'; }
+    tag.className = cls;
+
+    renderPai(p, realCamp, realJob);
+
+    // 反差文案
+    var lead = '';
+    if (jobOk && campOk) {
+      lead = '你入' + state.camp + '、修' + jobName(state.job, state.camp) + '。<br>三关飞升，你还是这一脉——<b>不是运气，是你本来就该在这儿。</b>';
+    } else if (campOk && !jobOk) {
+      lead = '你说要修' + jobName(state.job, state.camp) + '。<br>但十五问计分走完，你一次都没往那条路上站。你其实是——<b>' + jobName(realJob, realCamp) + '</b>。<br>门走对了，脉走岔了。';
+    } else if (!campOk && jobOk) {
+      lead = '你入' + state.camp + '，做' + jobName(state.job, state.camp) + '。<br>可三关下来，你每一条路都往' + realCamp + '那边走。你一直以为自己是' + state.camp + '的人，<b>其实不是。</b>';
+    } else {
+      lead = '你入' + state.camp + '、修' + jobName(state.job, state.camp) + '。<br>但十五问走完，门也不对，脉也不对。你选的那条路，<b>从来没打算收你。</b>';
+    }
+    $('#rsLead').innerHTML = lead;
+    $('#rsLine').innerHTML = p.line;
+
+    $('#cmpPledge').textContent = state.camp + ' · ' + jobName(state.job, state.camp);
+    $('#cmpReal').textContent = realCamp + ' · ' + jobName(realJob, realCamp);
+
+    // 心性分布
+    var bars = $('#bars');
+    bars.innerHTML = '';
+    var max = Math.max.apply(null, ORDER.map(function (k) { return state.counts[k]; })) || 1;
+    ORDER.slice().sort(function (a, b) { return state.counts[b] - state.counts[a]; }).forEach(function (k) {
+      var n = state.counts[k];
+      var row = document.createElement('div');
+      row.className = 'bar-row' + (k === top ? '' : ' dim');
+      row.innerHTML =
+        '<span class="bar-name">' + DB.traits[k].name + '</span>' +
+        '<div class="bar-track"><i class="bar-fill" style="--w:' + Math.round(n / max * 100) + '%"></i></div>' +
+        '<span class="bar-num">' + n + '</span>';
+      bars.appendChild(row);
+    });
+
+    $('#winSay').innerHTML = toParas(p.origin || p.say);
+    $('#karmaSay').innerHTML = toParas(p.price || '');
+    var fameHtml = '';
+    if (p.fame_line) fameHtml += '<p class="b-say" style="margin-bottom:8px"><b>' + p.fame_line + '</b></p>';
+    if (p.fame_scene) fameHtml += '<p class="b-say">' + p.fame_scene + '</p>';
+    fameHtml += '<p class="b-note" style="margin-top:8px">没有心魔的修士，也渡不了最精彩的劫。</p>';
+    $('#fameSay').innerHTML = fameHtml;
+    $('#rsSecret').innerHTML =
+      '<p class="s-tag">秘闻 · 只有你看得到</p>' +
+      toParas(p.secret, 's-p') +
+      '<p class="s-q">' + p.quote + '</p>';
+
+    $$('.bar-fill').forEach(function (el) { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; });
+
+    renderMbti(p);
+    renderMirror(p);
+    renderRadar(p, top);
+    renderRel(p);
+    renderJourney(top);
+    renderQuote(p);
+  }
+
+  /* ---------- 命牌 ---------- */
+  /* 同一职业不同门派可能有不同叫法（如仙门·天命师 / 魔门·阴阳师） */
+  var JOB_NAME = {
+    '仙门': { '阴阳师': '天命师' },
+    '魔门': {}
+  };
+  function jobName(job, camp) {
+    var m = JOB_NAME[camp];
+    return (m && m[job]) ? m[job] : job;
+  }
+
+  var RARITY_STARS = { 5: '★★★★★', 4: '★★★★☆', 3: '★★★☆☆', 2: '★★☆☆☆', 1: '★☆☆☆☆' };
+  var BRANCH_LIST = {
+    '剑修': ['守剑','快剑','重剑','剑阵','心剑'], '刀修': ['直刀','双刀','重刀','血刀'],
+    '法修': ['五行','雷法','风法','禁术'], '体修': ['外炼','筋骨','气血','不死'],
+    '炼丹师': ['水火','丹毒','药引','回春'], '炼器师': ['铸心','铭纹','火候','器灵'],
+    '符师': ['承符','朱砂','雷符','禁符'], '阵法师': ['困阵','杀阵','连环','阵心'],
+    '御兽师': ['灵兽','契心','群驭','兽语'], '傀儡师': ['机关','丝线','替身','人偶'],
+    '阴阳师': ['观气','断命','召魂','逆卦'], '灵植师': ['灵木','催生','毒藤','养土']
+  };
+
+  function renderPai(p, camp, job) {
+    var key = p.job, role = p.role || '';
+    var id = getComboKey(p) || topKeyOf(p);
+    var rarity = (DB.traits[topKeyOf(p)] || {}).rarity || 6;
+
+    // 编号：单牌 01-06，组合 07-21
+    var idx = PERSONA_ORDER.indexOf(id);
+    $('#paiNo').textContent = String(idx >= 0 ? idx + 1 : 1).padStart(2, '0');
+
+    // 立绘（没有图就用渐变兜底）
+    var pt = $('#paiPortrait');
+    var old = pt.querySelector('img');
+    if (old) old.remove();
+    var img = new Image();
+    img.alt = job;
+    /* 立绘文件名用英文（GitHub Pages 中文文件名易出编码问题） */
+    var IMGMAP = {
+      '仙门_剑修_f':'xian_sword_f','仙门_御兽师_f':'xian_beast_f','仙门_法修_f':'xian_mage_f',
+      '仙门_灵植师_f':'xian_herbalist_f','仙门_炼丹师_f':'xian_alchemist_f','仙门_炼器师_f':'xian_artificer_f',
+      '仙门_符师_f':'xian_talisman_f','仙门_阵法师_f':'xian_array_f',
+      '魔门_体修_f':'mo_body_f','魔门_傀儡师_f':'mo_puppet_f','魔门_刀修_f':'mo_blade_f','魔门_阴阳师_f':'mo_yinyang_f'
+    };
+    var fname = IMGMAP[p.camp + '_' + job + '_f'] || (p.camp + '_' + job + '_f');
+    var cands = ['images/' + fname + '.jpg', '../images/' + fname + '.jpg'];
+    var ci = 0;
+    img.onerror = function () { ci++; if (ci < cands.length) img.src = cands[ci]; else img.remove(); };
+    img.src = cands[0];
+    pt.insertBefore(img, pt.firstChild);
+    pt.style.background = (p.camp === '仙门')
+      ? 'linear-gradient(160deg,#3B5A78,#8FA6BC)'
+      : 'linear-gradient(160deg,#7A2B26,#C08478)';
+
+    $('#paiCamp').textContent = p.camp;
+    $('#paiEyebrow').textContent = p.camp + ' · ' + (p.camp === '仙门' ? '守序' : '破序') + (role ? ' · ' + role : '');
+    $('#rsName').textContent = jobName(job, p.camp);
+    $('#rsBranch').textContent = p.branch + (role ? ' · ' + role : '');
+    var pct = p.pct || rarity;
+    var tier = p.tier || 3;
+    $('#paiPurityK').textContent = '命格稀有';
+    $('#paiStars').textContent = RARITY_STARS[6 - tier] || '★★★☆☆';
+    $('#paiRarity').textContent = pct;
+    var d = new Date();
+    $('#paiDate').textContent = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    $('#paiPov').innerHTML = p.quote;
+    $('#paiTagline').textContent = p.tagline || p.line.replace(/<br\s*\/?>/g, '');
+    $('#paiNote').textContent = rarityNote(pct, tier);
+  }
+
+  /* 按百分比给一句人话，不评判高下 */
+  function rarityNote(pct, tier) {
+    if (tier <= 1) return '四海之内，每十个修士里就有一个是这一型（' + pct + '%）';
+    if (tier === 2) return '四海之内，' + pct + '% 的修士是这一型——不算多';
+    if (tier === 3) return '四海之内，只有 ' + pct + '% 的修士是这一型';
+    if (tier === 4) return '四海之内，仅 ' + pct + '% 的修士是这一型，已经很少了';
+    return '四海之内，只有 ' + pct + '% 的修士是这一型——你不太好找';
+  }
+
+  var PERSONA_ORDER = ['A','B','C','D','E','F','AB','AC','AD','AE','AF','BC','BD','BE','BF','CD','CE','CF','DE','DF','EF'];
+
+  function topKeyOf(p) {
+    var k = Object.keys(PERSONA).filter(function (x) { return PERSONA[x] === p; })[0];
+    return k || 'A';
+  }
+  function getComboKey(p) {
+    var k = Object.keys(COMBO32).filter(function (x) { return COMBO32[x] === p; })[0];
+    return k || null;
+  }
+
+  /* ---------- 今日一句 ---------- */
+  function renderQuote(p) {
+    var el = $('#quoteText');
+    if (!QUOTES || !QUOTES.pool) { $('#quoteCard').style.display = 'none'; return; }
+    var key = p.camp + '.' + p.job;
+    var set = QUOTES.pool[key];
+    if (!set) { $('#quoteCard').style.display = 'none'; return; }
+    // 三档合并成一个池（9 句），随机抽一句
+    var all = [];
+    ['A', 'B', 'C'].forEach(function (k) { if (set[k]) all = all.concat(set[k]); });
+    if (!all.length) { $('#quoteCard').style.display = 'none'; return; }
+    // 同一次结果每次刷新不要跳得太乱：用「日期 + 命格」做种，保证当天稳定
+    var d = new Date();
+    var seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate() + key.length;
+    el.textContent = all[seed % all.length];
+  }
+
+  /* ---------- MBTI 对照 ---------- */
+  function renderMbti(p) {
+    var el = $('#mbtiRow');
+    if (!p.mbti) { el.innerHTML = ''; el.style.display = 'none'; return; }
+    el.style.display = 'flex';
+    el.innerHTML =
+      '<span class="mbti-k">最 像<br>M B T I</span>' +
+      '<span class="mbti-code">' + p.mbti.split('').join(' ') + '</span>' +
+      '<span class="mbti-v">不是给你贴标签，<br>是让你有个参照</span>';
+  }
+
+  /* ---------- 别人眼里的你 ---------- */
+  function renderMirror(p) {
+    var el = $('#rsMirror');
+    el.textContent = p.mirror || '（这个命格的镜像评价还在写）';
+  }
+
+  /* ---------- 六脉图（雷达） ---------- */
+  function renderRadar(p, top) {
+    var cv = $('#radar');
+    var dpr = window.devicePixelRatio || 1;
+    var W = 360, H = 330, cx = W / 2, cy = H / 2 + 6, R = 108;
+    cv.width = W * dpr; cv.height = H * dpr;
+    cv.style.width = '100%';
+    var g = cv.getContext('2d');
+    g.scale(dpr, dpr);
+    g.clearRect(0, 0, W, H);
+
+    var N = ORDER.length, maxV = 10;
+    var pts = ORDER.map(function (k, i) {
+      var ang = -Math.PI / 2 + i * 2 * Math.PI / N;
+      return { k: k, ang: ang };
+    });
+
+    // 底网格：4 圈
+    for (var ring = 4; ring >= 1; ring--) {
+      g.beginPath();
+      pts.forEach(function (pt, i) {
+        var r = R * ring / 4;
+        var x = cx + Math.cos(pt.ang) * r, y = cy + Math.sin(pt.ang) * r;
+        i ? g.lineTo(x, y) : g.moveTo(x, y);
+      });
+      g.closePath();
+      g.strokeStyle = ring === 4 ? 'rgba(120,96,60,.30)' : 'rgba(120,96,60,.14)';
+      g.lineWidth = 1;
+      g.stroke();
+      if (ring === 4) { g.fillStyle = 'rgba(255,252,245,.55)'; g.fill(); }
+    }
+    // 辐条
+    pts.forEach(function (pt) {
+      g.beginPath();
+      g.moveTo(cx, cy);
+      g.lineTo(cx + Math.cos(pt.ang) * R, cy + Math.sin(pt.ang) * R);
+      g.strokeStyle = 'rgba(120,96,60,.14)'; g.stroke();
+    });
+
+    // 数据多边形
+    g.beginPath();
+    pts.forEach(function (pt, i) {
+      var v = Math.max(state.counts[pt.k], 0.35);
+      var r = R * Math.min(v / maxV, 1);
+      var x = cx + Math.cos(pt.ang) * r, y = cy + Math.sin(pt.ang) * r;
+      i ? g.lineTo(x, y) : g.moveTo(x, y);
+    });
+    g.closePath();
+    var fill = g.createRadialGradient(cx, cy, 10, cx, cy, R);
+    fill.addColorStop(0, 'rgba(168,68,47,.34)');
+    fill.addColorStop(1, 'rgba(168,68,47,.10)');
+    g.fillStyle = fill; g.fill();
+    g.strokeStyle = 'rgba(168,68,47,.85)'; g.lineWidth = 1.6; g.stroke();
+
+    // 顶点
+    pts.forEach(function (pt) {
+      var v = Math.max(state.counts[pt.k], 0.35);
+      var r = R * Math.min(v / maxV, 1);
+      var x = cx + Math.cos(pt.ang) * r, y = cy + Math.sin(pt.ang) * r;
+      g.beginPath();
+      g.arc(x, y, pt.k === top ? 3.6 : 2.4, 0, Math.PI * 2);
+      g.fillStyle = pt.k === top ? '#A8442F' : 'rgba(168,68,47,.6)';
+      g.fill();
+      if (pt.k === top) {
+        g.beginPath(); g.arc(x, y, 7, 0, Math.PI * 2);
+        g.strokeStyle = 'rgba(168,68,47,.35)'; g.lineWidth = 1; g.stroke();
+      }
+    });
+
+    // 标签
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    pts.forEach(function (pt) {
+      var lr = R + 27;
+      var x = cx + Math.cos(pt.ang) * lr, y = cy + Math.sin(pt.ang) * lr;
+      var nm = DB.traits[pt.k].name;
+      g.font = '600 15px ' + (getComputedStyle(document.documentElement).getPropertyValue('--serif') || 'serif');
+      g.fillStyle = pt.k === top ? '#A8442F' : '#454138';
+      g.fillText(nm, x, y - 7);
+      g.font = '10px sans-serif';
+      g.fillStyle = '#8A8172';
+      g.fillText(state.counts[pt.k] + '/10', x, y + 10);
+    });
+  }
+
+  /* ---------- 相生相克 ---------- */
+  function renderRel(p) {
+    var box = $('#relRow');
+    var a = PERSONA[p.compat], b = PERSONA[p.clash];
+    box.innerHTML =
+      '<div class="rel-cell">' +
+        '<p class="rel-label">合 得 来</p>' +
+        '<p class="rel-name"><i class="dot ' + (a.camp === '仙门' ? 'xian' : 'mo') + '"></i>' + a.job + '</p>' +
+        '<p class="rel-hint">' + (p.with_txt || '') + '</p>' +
+      '</div>' +
+      '<div class="rel-cell">' +
+        '<p class="rel-label">合 不 来</p>' +
+        '<p class="rel-name"><i class="dot ' + (b.camp === '仙门' ? 'xian' : 'mo') + '"></i>' + b.job + '</p>' +
+        '<p class="rel-hint">' + (p.hard_txt || '') + '</p>' +
+      '</div>';
+  }
+
+  /* ---------- 三关战绩 ---------- */
+  function renderJourney(top) {
+    var box = $('#journey');
+    box.innerHTML = '';
+    var logs = state.stageLog;
+    logs.forEach(function (log, i) {
+      var best = ORDER.slice().sort(function (a, b) { return log.counts[b] - log.counts[a]; })[0];
+      var isAsc = (i === logs.length - 1);
+      var row = document.createElement('div');
+      row.className = 'jr-row' + (isAsc ? ' asc' : '');
+      row.innerHTML =
+        '<span class="jr-no">' + (i + 1) + '</span>' +
+        '<div class="jr-main">' +
+          '<div class="jr-head">' +
+            '<p class="jr-stage">' + log.stage + '</p>' +
+            '<span class="jr-chip' + (isAsc ? '' : ' ghost') + '">' + (isAsc ? '飞 升' : '已 过') + '</span>' +
+          '</div>' +
+          '<p class="jr-desc">这一关十次里有 ' + log.counts[best] + ' 次选了「' + DB.traits[best].name + '」</p>' +
+        '</div>';
+      box.appendChild(row);
+    });
+  }
+
+})();
+
+</script>
+</body>
+</html>
