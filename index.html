@@ -37,42 +37,44 @@ body{
 #scQuiz.on{justify-content:center;}
 #scQuiz .qz-opts{margin-top:44px;}
 
-/* ===== 立誓 ===== */
-.pl-eyebrow{margin:8px 0 0;font-size:10px;letter-spacing:3.4px;color:var(--seal);}
-.pl-title{margin:10px 0 0;font-family:var(--serif);font-size:23px;line-height:1.6;letter-spacing:1px;font-weight:600;}
-.pl-sub{margin:10px 0 0;font-size:12.5px;line-height:1.9;color:var(--ink-faint);letter-spacing:.3px;}
-.pl-translate{margin:14px 0 0;padding:10px 14px;font-size:12px;line-height:1.9;color:var(--ink-faint);background:rgba(0,0,0,.025);border-left:2px solid var(--gold,#B98A3E);text-align:left;}
+/* ===== 立誓（一屏收纳：小屏不滚动） ===== */
+.pl-eyebrow{margin:4px 0 0;font-size:10px;letter-spacing:3.4px;color:var(--seal);}
+.pl-title{margin:6px 0 0;font-family:var(--serif);font-size:19px;line-height:1.5;letter-spacing:1px;font-weight:600;}
+.pl-sub{margin:6px 0 0;font-size:11.5px;line-height:1.7;color:var(--ink-faint);letter-spacing:.3px;}
+.pl-translate{margin:8px 0 0;padding:7px 12px;font-size:11px;line-height:1.75;color:var(--ink-faint);background:rgba(0,0,0,.025);border-left:2px solid var(--gold,#B98A3E);text-align:left;}
 
-.pl-step{margin-top:26px;}
-.pl-label{margin:0 0 10px;font-size:10px;letter-spacing:2.6px;color:var(--ink-faint);}
+.pl-step{margin-top:12px;}
+.pl-label{margin:0 0 8px;font-size:10px;letter-spacing:2.6px;color:var(--ink-faint);}
 .pl-camps{display:flex;gap:10px;}
 .camp-t{
-  flex:1;padding:15px 12px 13px;text-align:left;
-  border:1px solid rgba(120,96,60,.26);border-radius:11px;
-  background:rgba(255,252,245,.62);
+  flex:1;padding:11px 12px 10px;text-align:left;
+  border:1.5px solid rgba(120,96,60,.42);border-radius:12px;
+  background:#FDF9F0;
   cursor:pointer;transition:all .22s var(--ease);
-  display:flex;flex-direction:column;gap:6px;
+  display:flex;flex-direction:column;gap:4px;
+  box-shadow:0 3px 10px -6px rgba(120,96,60,.45);
 }
 .camp-t:active{transform:scale(.985);}
-.camp-t.on{background:#1F1D18;border-color:#1F1D18;}
+.camp-t.on{background:#1F1D18;border-color:#1F1D18;box-shadow:0 6px 16px -8px rgba(31,29,24,.8);}
 .camp-t.on .ct-name{color:#F7F1E4;}
 .camp-t.on .ct-desc{color:rgba(247,241,228,.6);}
-.ct-name{font-family:var(--serif);font-size:16px;letter-spacing:3px;color:var(--ink);font-weight:600;}
+.ct-name{font-family:var(--serif);font-size:15px;letter-spacing:3px;color:var(--ink);font-weight:600;}
 .ct-desc{font-size:10.5px;line-height:1.6;color:var(--ink-faint);}
 
 .pl-jobs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .job-t{
-  padding:11px 4px;text-align:center;
-  border:1px solid rgba(120,96,60,.22);border-radius:9px;
-  background:rgba(255,252,245,.5);
+  padding:12px 4px;text-align:center;
+  border:1.5px solid rgba(120,96,60,.38);border-radius:10px;
+  background:#FDF9F0;
   font-family:var(--serif);font-size:13.5px;letter-spacing:1px;
-  color:var(--ink-light);cursor:pointer;transition:all .2s;
+  color:var(--ink);font-weight:600;cursor:pointer;transition:all .2s;
+  box-shadow:0 3px 10px -6px rgba(120,96,60,.45);
 }
 .job-t.on{background:var(--seal);border-color:var(--seal);color:#FBF6EA;box-shadow:0 6px 16px -8px rgba(168,68,47,.7);}
 .job-t:active{transform:scale(.96);}
 
 .pl-go{
-  margin-top:30px;padding:16px;width:100%;
+  margin-top:16px;padding:14px;width:100%;
   border:none;border-radius:10px;cursor:pointer;
   background:linear-gradient(150deg,var(--seal-light),var(--seal-deep));
   color:#FBF6EA;font-family:var(--serif);font-size:15px;letter-spacing:4px;
@@ -81,7 +83,7 @@ body{
 }
 .pl-go:disabled{opacity:.32;box-shadow:none;cursor:not-allowed;}
 .pl-go:not(:disabled):active{transform:translateY(1px);}
-.pl-note{margin:16px 0 0;text-align:center;font-family:var(--serif);font-size:12px;line-height:2;letter-spacing:1px;color:var(--ink-faint);}
+.pl-note{margin:8px 0 0;text-align:center;font-family:var(--serif);font-size:11px;line-height:1.8;letter-spacing:1px;color:var(--ink-faint);}
 
 /* ===== 答题 ===== */
 .qz-phase{margin:10px 0 0;font-size:9.5px;letter-spacing:2.6px;color:var(--seal);}
@@ -490,7 +492,7 @@ body{
     <p class="pl-translate">你以为自己在上班、回消息、纠结要不要去聚会——<br>但在修仙界，这些全是道心试炼。<br>你的每一个日常选择，都在暴露你的命格。</p>
 
     <div class="pl-step">
-      <p class="pl-label">一 · 你入哪一门</p>
+      <p class="pl-label">一 · 你想选哪一门</p>
       <div class="pl-camps">
         <button class="camp-t" data-camp="仙门">
           <span class="ct-name">仙 门</span>
@@ -504,12 +506,12 @@ body{
     </div>
 
     <div class="pl-step">
-      <p class="pl-label">二 · 你选哪一脉</p>
+      <p class="pl-label">二 · 你想选哪一脉</p>
       <div class="pl-jobs" id="jobList"></div>
     </div>
 
     <button class="pl-go" id="btnGo" disabled>炼 气 入 门</button>
-    <p class="pl-note">人生的道路变幻莫测，<br>可能你走着走着，却发现已经迷失了方向</p>
+    <p class="pl-note">人生的道路变幻莫测，走着走着，别迷失了方向</p>
   </section>
 
   <!-- ===== 二 · 答题 ===== -->
