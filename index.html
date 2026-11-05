@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#F3EDE0">
-<title>三关问道 · 机制演示</title>
+<title>修仙命格测试</title>
 <style>
 
 :root{
@@ -593,6 +593,47 @@ body{
   background:#EFE3CC;color:#2A241B;font-family:var(--serif);font-size:13px;letter-spacing:3px;
 }
 
+/* ===== 上一题 ===== */
+.qz-back{
+  margin:22px auto 0;padding:9px 26px;display:block;
+  border:1px solid rgba(120,96,60,.32);border-radius:8px;
+  background:rgba(255,252,245,.55);cursor:pointer;
+  font-family:var(--serif);font-size:12px;letter-spacing:2px;color:var(--ink-faint);
+  box-shadow:0 2px 0 rgba(200,186,160,.7);
+  transition:all .2s;
+}
+.qz-back:active{transform:translateY(2px);box-shadow:none;}
+.qz-back[disabled]{opacity:0;pointer-events:none;}
+@media (max-width:600px){ .qz-back{margin-top:16px;font-size:11.5px;padding:8px 22px;} }
+
+/* ===== 断点续答提示 ===== */
+.resume-tip{
+  display:none;position:fixed;inset:0;z-index:98;
+  background:rgba(26,22,17,.72);
+  align-items:center;justify-content:center;padding:26px;
+}
+.resume-tip.on{display:flex;}
+.rt-t{
+  margin:0 0 20px;font-family:var(--serif);font-size:15px;letter-spacing:1px;
+  color:#F7F1E4;text-align:center;line-height:1.8;
+}
+.resume-tip{flex-direction:column;}
+.rt-btns{display:flex;gap:12px;}
+.rt-yes,.rt-no{
+  padding:12px 26px;border-radius:9px;cursor:pointer;
+  font-family:var(--serif);font-size:13px;letter-spacing:3px;
+  transition:all .2s;
+}
+.rt-yes{
+  border:none;color:#FFF6E6;
+  background:linear-gradient(160deg,#C1573C,#A8442F 55%,#8A3322);
+  box-shadow:0 4px 0 #7A2C1D,0 8px 16px -8px rgba(0,0,0,.6);
+}
+.rt-no{
+  border:1.5px solid rgba(247,241,228,.5);background:transparent;color:#EFE3CC;
+}
+.rt-yes:active,.rt-no:active{transform:translateY(2px);}
+
 </style>
 </head>
 <body>
@@ -600,14 +641,14 @@ body{
 
   <header class="cl-head">
     <div class="cl-prog"><i id="progFill"></i></div>
-    <div class="cl-count"><b id="nowNo">1</b>/<span id="totalNo">20</span></div>
+    <div class="cl-count"><span id="nowNo">1</span></div>
   </header>
 
   <!-- ===== 一 · 立誓 ===== -->
   <section class="screen on" id="scPledge">
     <p class="pl-eyebrow">初 入 修 仙 界</p>
     <h1 class="pl-title">你先选一条路。<br>然后我们看，你走下来的最终结果。</h1>
-    <p class="pl-sub">三关十五问，另加照心五问。中间不会告诉你任何结果——飞升那一刻才揭晓，你到底是谁。</p>
+    <p class="pl-sub">三关试炼，终章照心。飞升一刻，自见真我。</p>
     <p class="pl-translate">你以为自己在上班、回消息、纠结要不要去聚会——<br>但在修仙界，这些全是道心试炼。<br>你的每一个日常选择，都在暴露你的命格。</p>
 
     <div class="pl-step">
@@ -630,7 +671,6 @@ body{
     </div>
 
     <button class="pl-go" id="btnGo" disabled>炼 气 入 门</button>
-    <p class="pl-note">人生的道路变幻莫测，走着走着，别迷失了方向</p>
   </section>
 
   <!-- ===== 二 · 答题 ===== -->
@@ -642,6 +682,7 @@ body{
     <p class="qz-kicker">遇 上 了 这 样 一 桩 事</p>
     <p class="qz-scene" id="qzScene"></p>
     <div class="qz-opts" id="qzOpts"></div>
+    <button class="qz-back" id="btnBack">← 上 一 题</button>
   </section>
 
   <!-- ===== 三 · 境界结算 ===== -->
@@ -792,6 +833,13 @@ body{
   </section>
 
 </div>
+<div class="resume-tip" id="resumeTip">
+  <p class="rt-t">你上次没答完，要接着答吗？</p>
+  <div class="rt-btns">
+    <button class="rt-yes" id="resumeYes">接 着 答</button>
+    <button class="rt-no" id="resumeNo">重 新 开 始</button>
+  </div>
+</div>
 <div class="shot-mask" id="shotMask">
   <p class="shot-tip">长按图片 · 保存或分享</p>
   <img id="shotImg" alt="战绩图">
@@ -826,7 +874,8 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
 /* 对撞式问答 + 境界关卡演示：立誓 → 三关（金丹/化神/飞升）→ 飞升揭晓反差 */
 (function () {
   var DB = null, ST = null;
-  var state = { camp: '', job: '', idx: 0, flat: [], counts: {}, pairWins: {}, lock: false, stage: 0 };
+  var state = { camp: '', job: '', idx: 0, flat: [], counts: {}, pairWins: {}, lock: false, stage: 0, answers: [], visited: false };
+  var SAVE_KEY = 'xx_fate_progress_v1';
   var $ = function (s) { return document.querySelector(s); };
   var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
 
@@ -881,7 +930,7 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
   }
 
   function initPledge() {
-    $('#totalNo').textContent = state.flat.length;
+    if ($('#totalNo')) $('#totalNo').textContent = state.flat.length;
 
     $$('.camp-t').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -906,11 +955,38 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
       jl.appendChild(b);
     });
 
-    $('#btnGo').addEventListener('click', startQuiz);
-    $('#btnAgain').addEventListener('click', startQuiz);
+    $('#btnGo').addEventListener('click', function () { startQuiz(true); });
+    $('#btnAgain').addEventListener('click', function () { startQuiz(true); });
     $('#btnHome').addEventListener('click', function () { show('scPledge'); $('#progFill').style.width = '0%'; });
     $('#btnNext').addEventListener('click', nextStage);
     $('#btnAscend').addEventListener('click', compute);
+    var bk = $('#btnBack');
+    if (bk) bk.addEventListener('click', goBack);
+
+    /* 浏览器/微信返回键 = 上一题 */
+    window.addEventListener('popstate', function () {
+      if ($('#scQuiz').classList.contains('on') && state.idx > 0) {
+        goBack();
+        history.pushState({ q: state.idx }, '');
+      }
+    });
+
+    /* 断点续答提示 */
+    var saved = loadProgress();
+    if (saved && saved.idx > 0) {
+      var tip = document.getElementById('resumeTip');
+      if (tip) {
+        tip.classList.add('on');
+        document.getElementById('resumeYes').onclick = function () {
+          tip.classList.remove('on');
+          resumeQuiz(saved);
+        };
+        document.getElementById('resumeNo').onclick = function () {
+          tip.classList.remove('on');
+          clearProgress();
+        };
+      }
+    }
   }
 
   /* 选了门派之后，职业按钮的名字要跟着变（仙门·天命师 / 魔门·阴阳师） */
@@ -927,15 +1003,96 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
   }
 
   /* ---------- 答题 ---------- */
-  function startQuiz() {
+  /* 断点续答：把进度存 localStorage，关掉页面再回来可接着答 */
+  function saveProgress() {
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify({
+        camp: state.camp, job: state.job, idx: state.idx,
+        answers: state.answers, stage: state.stage, t: Date.now()
+      }));
+    } catch (e) {}
+  }
+  function clearProgress() {
+    try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+  }
+  function loadProgress() {
+    try {
+      var raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return null;
+      var d = JSON.parse(raw);
+      if (!d || !d.camp || !d.job) return null;
+      if (Date.now() - (d.t || 0) > 7 * 24 * 3600 * 1000) { clearProgress(); return null; }
+      return d;
+    } catch (e) { return null; }
+  }
+
+  function startQuiz(fresh) {
     state.idx = 0; state.stage = 0; state.lock = false;
     state.counts = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
     state.stageLog = [];   // 每关心性分布，用于结果页三关战绩
     state.stageCounts = { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
     state.pairWins = {};
+    state.answers = [];
+    if (fresh !== false) clearProgress();
+    state.visited = true;
     $('#sacredStage').textContent = ST.stages[0].stage;
     show('scQuiz');
     render();
+    saveProgress();
+  }
+
+  /* 从断点恢复：重放已答过的题，重建计数 */
+  function resumeQuiz(d) {
+    startQuiz(false);
+    state.camp = d.camp;
+    state.job = d.job;
+    state.answers = d.answers || [];
+    var n = Math.min(state.answers.length, state.flat.length);
+    for (var i = 0; i < n; i++) {
+      var item = state.flat[i];
+      var a = state.answers[i];
+      if (!a) break;
+      if (item.stage !== state.stage) {
+        var ps = ST.stages[state.stage];
+        if (ps && !ps.bonus_stage) state.stageLog.push({ no: ps.no, stage: ps.title, counts: snapshotStage() });
+        state.stage = item.stage;
+        $('#sacredStage').textContent = ST.stages[state.stage].stage;
+      }
+      if (a.t !== 'N' && !item.q.bonus) {
+        state.counts[a.t]++;
+        state.pairWins[item.q.pair] = a.t;
+      }
+    }
+    state.idx = n;
+    if (state.idx >= state.flat.length) { showAscend(); return; }
+    show('scQuiz');
+    render();
+  }
+
+  /* 回上一题：撤销上一题的计分 */
+  function goBack() {
+    if (state.lock || state.idx <= 0) return;
+    var i = state.idx - 1;
+    var item = state.flat[i];
+    var a = state.answers[i];
+    if (a && a.t !== 'N' && !item.q.bonus) {
+      state.counts[a.t]--;
+      // 该 pair 的胜者重算（找最近一次同 pair 的选择）
+      delete state.pairWins[item.q.pair];
+      for (var k = i - 1; k >= 0; k--) {
+        var it2 = state.flat[k], a2 = state.answers[k];
+        if (it2.q.pair === item.q.pair && a2 && a2.t !== 'N' && !it2.q.bonus) { state.pairWins[item.q.pair] = a2.t; break; }
+      }
+    }
+    state.answers.length = i;
+    state.idx = i;
+    state.stage = state.flat[i].stage;
+    // 回退到上一关时，把该关已记录的 stageLog 撤掉（保留 stage 之前的）
+    state.stageLog = state.stageLog.slice(0, state.stage);
+    $('#sacredStage').textContent = ST.stages[state.stage].stage;
+    show('scQuiz');
+    render();
+    saveProgress();
   }
 
   function render() {
@@ -948,10 +1105,16 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
     if (item._started === undefined && si !== state.stage) {}
     state.stage = si;
 
-    $('#nowNo').textContent = state.idx + 1;
+    var cEl = $('#nowNo');
+    if (cEl) cEl.textContent = st.no + ' · ' + st.chapter;
+    var bk = $('#btnBack');
+    if (bk) {
+      bk.disabled = state.idx === 0;
+      bk.style.display = state.idx === 0 ? 'none' : 'block';
+    }
     $('#progFill').style.width = (state.idx / state.flat.length * 100) + '%';
     $('#sacredStage').textContent = st.stage;
-    $('#qzPhase').textContent = st.no + ' · ' + st.chapter + ' · ' + pos + '/' + inStage.length;
+    $('#qzPhase').textContent = st.no + ' · ' + st.chapter;
     $('#qzScene').textContent = q.scene;
 
     var box = $('#qzOpts');
@@ -960,7 +1123,7 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
     void box.offsetWidth;
     box.style.animation = 'qin .38s var(--ease)';
 
-    var marks = ['甲', '乙'];
+    var marks = ['A', 'B'];
     q.options.forEach(function (op, i) {
       var b = document.createElement('button');
       b.className = 'cl-opt';
@@ -985,16 +1148,21 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
       state.counts[op.trait]++;
       state.pairWins[q.pair] = op.trait;
     }
+    // 记录本题选择（回退与断点续答都依赖它）
+    state.answers[state.idx] = { t: op.trait, r: isReal ? 1 : 0 };
+    saveProgress();
 
     setTimeout(function () {
       state.idx++;
       state.lock = false;
       if (state.idx >= state.flat.length) {
         $('#progFill').style.width = '100%';
+        clearProgress();
         showAscend();
       } else if (state.flat[state.idx].stage !== state.stage) {
         showStageClear(state.stage);
       } else {
+        show('scQuiz');
         render();
       }
     }, 320);
@@ -1422,23 +1590,36 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
 
 /* ---------- 战绩截图（html2canvas） ---------- */
 (function () {
+  var D = document;
+  function $(s) { return D.querySelector(s); }
   var btn = $('#btnShare'), mask = $('#shotMask'), img = $('#shotImg');
   if (!btn) return;
+  var busy = false;
   btn.addEventListener('click', function () {
+    if (busy) return;
+    if (!window.html2canvas) { alert('生成组件未加载，请直接截屏保存'); return; }
+    busy = true;
     var old = btn.textContent;
     btn.textContent = '生 成 中 …';
-    window.html2canvas(document.querySelector('#scResult'), {
-      backgroundColor: '#F4EDE0', useCORS: true, scale: 2
+    var target = $('#scResult');
+    // 截图时临时隐藏按钮区与遮罩，避免把按钮拍进去
+    window.html2canvas(target, {
+      backgroundColor: '#F4EDE0', useCORS: true, logging: false, scale: 2,
+      windowWidth: target.scrollWidth, windowHeight: target.scrollHeight
     }).then(function (canvas) {
-      img.src = canvas.toDataURL('image/jpeg', 0.9);
+      img.src = canvas.toDataURL('image/jpeg', 0.92);
       mask.classList.add('on');
       btn.textContent = old;
-    }).catch(function () {
+      busy = false;
+    }).catch(function (err) {
       btn.textContent = old;
-      alert('生成失败，请直接截屏');
+      busy = false;
+      alert('生成失败（' + (err && err.message ? err.message : '未知原因') + '），请直接截屏保存');
     });
   });
-  $('#shotClose').addEventListener('click', function () { mask.classList.remove('on'); });
+  var close = $('#shotClose');
+  if (close) close.addEventListener('click', function () { mask.classList.remove('on'); });
+  if (mask) mask.addEventListener('click', function (e) { if (e.target === mask) mask.classList.remove('on'); });
 })();
 
 </script>
