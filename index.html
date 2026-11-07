@@ -2514,6 +2514,10 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
   var D = document;
   function $(s) { return D.querySelector(s); }
   var btn = $('#btnShare'), mask = $('#shotMask'), img = $('#shotImg');
+  /* 关闭绑定必须先于 btn 早期返回，否则弹层永远关不掉 */
+  var close = $('#shotClose');
+  if (close) close.addEventListener('click', function () { if (mask) mask.classList.remove('on'); });
+  if (mask) mask.addEventListener('click', function (e) { if (e.target === mask) mask.classList.remove('on'); });
   if (!btn) return;
   var busy = false;
   btn.addEventListener('click', function () {
@@ -2542,9 +2546,6 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
       alert('生成失败（' + (err && err.message ? err.message : '未知原因') + '），请直接截屏保存');
     });
   });
-  var close = $('#shotClose');
-  if (close) close.addEventListener('click', function () { mask.classList.remove('on'); });
-  if (mask) mask.addEventListener('click', function (e) { if (e.target === mask) mask.classList.remove('on'); });
 })();
 
 /* ---------- 第一页命格卡：保存截图 / 分享 ---------- */
