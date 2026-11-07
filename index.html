@@ -67,6 +67,11 @@ body{
   background:linear-gradient(160deg,#E8D9B8,#D9C49A);
   box-shadow:0 12px 28px -12px rgba(70,52,30,.45);}
 .p2-hero img{width:100%;height:100%;object-fit:cover;object-position:center 42%;display:block;}
+/* 桌面大屏：立绘展示框拉高，人物显示更完整（手机保持横幅裁切，保证一屏放下） */
+@media (min-width:601px) and (min-height:760px){
+  .p2-hero{height:400px;}
+  .p2-hero img{object-position:center 30%;}
+}
 .p2-hero::after{content:"";position:absolute;inset:0;pointer-events:none;
   background:linear-gradient(180deg,rgba(248,244,232,.42) 0%,rgba(248,244,232,0) 12%,
     rgba(248,244,232,0) 76%,rgba(238,226,203,.42) 94%,rgba(238,226,203,.58) 100%);}
@@ -1771,6 +1776,40 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
   if (_tjBack) _tjBack.addEventListener('click', function () { show('scResult'); FP.go(6); });
   var _tjWall = $('#btnTjWall');
   if (_tjWall) _tjWall.addEventListener('click', function () { openWall(); });
+  var _tjWall = $('#btnTjWall');
+  if (_tjWall) _tjWall.addEventListener('click', function () { openWall(); });
+
+  /* ============ 分享解锁：先给分享动作，再进图鉴 ============ */
+  function shareUnlock() {
+    var q = GJ.self ? byKey(GJ.self) : null;
+    var url = location.href.split('#')[0].split('?')[0];
+    var text = '我在「修仙命格对撞测试」测出了\u3010' + (q ? q.job + '\u00b7' + q.name : '\u672c\u547d') + '\u3011\uff0c\u4e09\u5206\u949f\u6d4b\u6d4b\u4f60\u7684\u4ed9\u9b54\u672c\u547d \u2192 ' + url;
+    function unlock() { try { localStorage.setItem('fate_unlocked', '1'); } catch (e) {} openGallery(); }
+    function tip(ok) {
+      tjToast(ok ? '\u94fe\u63a5\u5df2\u590d\u5236 \u00b7 \u53d1\u7ed9\u4e00\u4f4d\u597d\u53cb\u5373\u53ef\u89e3\u9501\u56fe\u9274' : '\u590d\u5236\u5931\u8d25\uff0c\u8bf7\u622a\u5c4f\u4e8c\u7ef4\u7801\u5206\u4eab');
+      unlock();
+    }
+    function fallbackCopy() {
+      var ok = false;
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;left:-9999px;top:0;';
+      document.body.appendChild(ta); ta.select();
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      ta.remove();
+      tip(ok);
+    }
+    if (navigator.share) {
+      navigator.share({ title: '\u4fee\u4ed9\u547d\u683c\u5bf9\u649e\u6d4b\u8bd5', text: text, url: url })
+        .then(unlock, function () { fallbackCopy(); });
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { tip(true); }, fallbackCopy);
+      return;
+    }
+    fallbackCopy();
+  }
 
   /* ============ 命格屏保（分享解锁后可生成） ============ */
   var WALL_EN = {
@@ -1821,6 +1860,12 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
         cv.toBlob(function (blob) {
           wallBusy = false;
           if (!blob) { tjToast('生成失败'); return; }
+          if (/MicroMessenger/i.test(navigator.userAgent)) {
+            var m = $('#shotMask'), im = $('#shotImg');
+            if (m && im) { im.src = cv.toDataURL('image/jpeg', 0.92); m.classList.add('on'); tjToast('长按图片 · 保存或分享'); }
+            else tjToast('微信内不支持下载，请直接截屏');
+            return;
+          }
           var file = new File([blob], name, { type: 'image/png' });
           if (navigator.canShare && navigator.canShare({ files: [file] })) {
             navigator.share({ files: [file], title: '我的修仙命格' }).catch(function () {});
@@ -1976,7 +2021,7 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
       for (var i = 1; i <= TOTAL; i++) dh += '<i class="' + (i === cur ? 'on' : '') + '"></i>';
       dots.innerHTML = dh;
       var list = LABEL[cur] || [], bh = '';
-      if (cur === 6 && list.length && unlockedNow()) list = [{ t: '打 开 命 格 图 鉴', c: 'main', a: 'unlock' }, { t: '生 成 命 格 屏 保', c: 'ghost', a: 'wall' }];
+      if (cur === 6 && list.length && unlockedNow()) list = [{ t: '打 开 命 格 图 鉴', c: 'main', a: 'gallery' }, { t: '生 成 命 格 屏 保', c: 'ghost', a: 'wall' }];
       list.forEach(function (b, idx) {
         bh += '<button class="fp-btn ' + b.c + '" data-a="' + b.a + '">' + b.t + '</button>';
       });
@@ -2018,6 +2063,12 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
       var name = '修仙命格_' + (($('#rsName') || {}).textContent || '') + '_第' + cur + '屏.png';
       cv.toBlob(function (blob) {
         if (!blob) { toast('生成失败'); return; }
+        if (/MicroMessenger/i.test(navigator.userAgent)) {
+          var m = $('#shotMask'), im = $('#shotImg');
+          if (m && im) { im.src = cv.toDataURL('image/jpeg', 0.92); m.classList.add('on'); toast('长按图片 · 保存或分享'); }
+          else toast('微信内不支持下载，请直接截屏');
+          return;
+        }
         if (mode === 'share' && navigator.canShare) { /* save on iOS 已转为 share */
           var file = new File([blob], name, { type: 'image/png' });
           if (navigator.canShare({ files: [file] })) {
@@ -2045,10 +2096,10 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
         return;
       }
       if (a === 'unlock') {
-        try { localStorage.setItem('fate_unlocked', '1'); } catch (e) {}
-        openGallery();
+        shareUnlock();
         return;
       }
+      if (a === 'gallery') { openGallery(); return; }
       if (a === 'wall') { openWall(); return; }
     }
 
@@ -2523,6 +2574,11 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
     });
   }
   function download(canvas) {
+    if (/MicroMessenger/i.test(navigator.userAgent)) {
+      var m = $('#shotMask'), im = $('#shotImg');
+      if (m && im) { im.src = canvas.toDataURL('image/jpeg', 0.92); m.classList.add('on'); say('长按图片 · 保存或分享'); return; }
+      say('微信内请直接截屏'); return;
+    }
     canvas.toBlob(function (blob) {
       var url = URL.createObjectURL(blob);
       var a = D.createElement('a');
@@ -2543,6 +2599,7 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
       if (mode === 'save') return download(canvas);
       /* iOS「保存」也已并入上方 share 分支 */
       /* 分享：优先系统分享面板，不支持则降级为保存 */
+      if (/MicroMessenger/i.test(navigator.userAgent)) return download(canvas);
       if (canvas.toBlob && navigator.canShare) {
         canvas.toBlob(function (blob) {
           if (!blob) return download(canvas);
