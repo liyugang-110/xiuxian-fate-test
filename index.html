@@ -568,6 +568,10 @@ body{
   flex:1;padding:14px 13px 13px;border-radius:11px;
   background:rgba(255,252,245,.62);border:1px solid rgba(120,96,60,.16);
 }
+.rel-cell.good{background:rgba(62,122,98,.07);border-color:rgba(62,122,98,.28);}
+.rel-cell.good .rel-label{color:#3E7A62;}
+.rel-cell.hard{background:rgba(160,64,48,.06);border-color:rgba(160,64,48,.24);}
+.rel-cell.hard .rel-label{color:#A04030;}
 .rel-label{margin:0;font-size:8.5px;letter-spacing:2.2px;color:var(--ink-faint);}
 .rel-name{margin:3px 0 0;font-family:var(--serif);font-size:16px;letter-spacing:1.6px;color:var(--ink);display:flex;align-items:center;gap:6px;}
 .dot{width:6px;height:6px;border-radius:50%;flex:none;}
@@ -908,16 +912,25 @@ body.in-result{overflow:hidden;padding-bottom:0;}
 
 /* ===== 矮视口适配（按实测内容高度配平，主图只做弹性、不压成一条） ===== */
 @media (max-height:780px){
-  .p2{padding:13px 15px 14px;}
-  .p2-hero{margin-top:6px;height:clamp(170px, calc(100dvh - 530px), 216px);}
-  .p2-pov{padding:11px 16px 11px;}
-  .p2-pov .p2-q{line-height:1.7;}
-  .p2-acts{margin-top:11px;}
-  .fp-dots{margin-bottom:8px;}
+  .p2{padding:12px 15px 13px;}
+  .p2-hero{margin-top:6px;height:clamp(190px, calc(100dvh - 490px), 256px);}
+  .p2-id{margin-top:9px;}
+  .p2-verdict{margin-top:5px;font-size:19px;letter-spacing:2px;}
+  .p2-dh{margin-top:5px;}
+  .p2-cmp{margin-top:8px;}
+  .p2-col{padding:8px 8px 9px;}
+  .p2-v{margin-top:3px;font-size:15px;}
+  .p2-pov{margin-top:8px;padding:9px 16px 9px;}
+  .p2-pov .p2-q{font-size:13.5px;line-height:1.6;}
+  .p2-pov .p2-q b{font-size:15px;}
+  .p2-ex{margin-top:3px;}
+  .p2-acts{margin-top:9px;}
+  .p2-btn{height:40px;}
+  .fp-dots{margin-bottom:7px;}
 }
 @media (max-height:700px){
   .p2{padding:11px 14px 12px;}
-  .p2-hero{margin-top:5px;height:clamp(150px, calc(100dvh - 490px), 200px);}
+  .p2-hero{margin-top:5px;height:clamp(150px, calc(100dvh - 490px), 212px);}
   .p2-id{margin-top:9px;}
   .p2-verdict{margin-top:5px;font-size:19px;letter-spacing:2px;}
   .p2-dh{margin-top:6px;}
@@ -1899,6 +1912,9 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
     var campEn = (w.camp === '魔门') ? 'mo' : 'xian';
     var jobEn = WALL_EN[w.jobRaw] || 'array';
     var cands = [];
+    /* 首选：第1屏命格卡已加载成功的那张立绘，保证壁纸与结果卡永远同图 */
+    var pai = $('#paiPortrait img');
+    if (pai && pai.src && pai.complete && pai.naturalWidth > 0) cands.push(pai.src);
     if (w.key) cands.push('images/' + campEn + '_' + jobEn + '_' + w.key.toLowerCase() + '_' + w.sex + '.jpg');
     cands.push('images/' + campEn + '_' + jobEn + '_' + w.sex + '.jpg');
     var ci = 0, fired = false;
@@ -2525,13 +2541,13 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
     var box = $('#relRow');
     var a = PERSONA[p.compat], b = PERSONA[p.clash];
     box.innerHTML =
-      '<div class="rel-cell">' +
+      '<div class="rel-cell good">' +
         '<p class="rel-label">合 得 来</p>' +
         '<p class="rel-name"><i class="dot ' + (a.camp === '仙门' ? 'xian' : 'mo') + '"></i>' + a.job + '·' + a.name + '</p>' +
         '<p class="rel-desc">' + (a.desc || '') + '</p>' +
         '<p class="rel-hint">' + (p.with_txt || '') + '</p>' +
       '</div>' +
-      '<div class="rel-cell">' +
+      '<div class="rel-cell hard">' +
         '<p class="rel-label">合 不 来</p>' +
         '<p class="rel-name"><i class="dot ' + (b.camp === '仙门' ? 'xian' : 'mo') + '"></i>' + b.job + '·' + b.name + '</p>' +
         '<p class="rel-desc">' + (b.desc || '') + '</p>' +
