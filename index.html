@@ -1104,7 +1104,7 @@ body.in-result{overflow:hidden;padding-bottom:0;}
               <p class="p2-name"><i></i><span id="rsName">阵法师</span><i></i></p>
               <h1 class="p2-verdict" id="paiDesc">什么都先算到自己头上</h1>
             </div>
-            <div class="p2-dh"><span class="p2-dh-in"><span class="p2-dh-tag">道号</span><span class="p2-dh-name" id="paiDaoHao">渊阵散人</span></span></div>
+            <div class="p2-dh"><span class="p2-dh-in"><span class="p2-dh-tag">道号</span><span class="p2-dh-name" id="paiDaoHao">—</span></span></div>
             <div class="p2-cmp">
               <div class="p2-col l"><span class="p2-k">你以为的</span><span class="p2-v" id="cmpPledge">仙门·剑修</span></div>
               <div class="p2-col r"><span class="p2-k">真实的你</span><span class="p2-v" id="cmpReal">仙门·阵法师</span></div>
@@ -2338,17 +2338,24 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
     if (DAO_BAN_FULL[s1 + s2 + title]) return false;
     return true;
   }
-  /* 称谓池（页面不采集性别，按阵营区分） */
+  /* 称谓池：按「性别 × 阵营」区分。女修一律用女仙称谓，不出真人/道长一类 */
   var TITLE_POOL = {
-    '仙门': ['散人', '真人', '真君', '客'],
-    '魔门': ['散人', '真人', '魔君', '圣君']
+    f: {
+      '仙门': ['仙子', '神女', '元君', '散人'],
+      '魔门': ['圣女', '魔女', '元君', '散人']
+    },
+    m: {
+      '仙门': ['散人', '真人', '真君', '客'],
+      '魔门': ['散人', '真人', '魔君', '圣君']
+    }
   };
   /* 同一个命格、不同的分数分布 → 不同的道号；同一份答案 → 永远同一个道号。
      撞黑名单时按「先换后缀、再换风格字」的固定顺序顺移，保证确定性与可复现。 */
-  function makeDaoHao(p, top, second, counts) {
+  function makeDaoHao(p, top, second, counts, sex) {
     var sw = STYLE_W[top] || STYLE_W.A;
     var sf = SUFFIX_W[p.job] || SUFFIX_W['阵法师'];
-    var pool = TITLE_POOL[p.camp] || TITLE_POOL['仙门'];
+    var bySex = TITLE_POOL[sex === 'm' ? 'm' : 'f'];
+    var pool = bySex[p.camp] || bySex['仙门'];
     var title = pool[((counts[top] || 0) + (counts[second] || 0)) % pool.length];
     var a = counts[top] || 0, b = counts[second] || 0;
     var i0 = a % sw.length, j0 = b % sf.length;
@@ -2399,7 +2406,7 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
     $('#paiCamp').textContent = p.camp;
     $('#rsName').textContent = jobName(job, p.camp);
     $('#paiDesc').textContent = p.desc || p.role || '';
-    $('#paiDaoHao').textContent = makeDaoHao(p, top, second, state.counts);
+    $('#paiDaoHao').textContent = makeDaoHao(p, top, second, state.counts, state.sex);
     $('#cmpPledge').textContent = state.camp + '·' + jobName(state.job, state.camp);
     $('#cmpReal').textContent = p.camp + '·' + jobName(job, p.camp);
     GJ.wall = { key: topKeyOf(p), camp: p.camp, jobRaw: job, jobName: jobName(job, p.camp), sex: (state.sex === 'm') ? 'm' : 'f' };
