@@ -1894,10 +1894,66 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
     fallbackCopy();
   }
 
+  /* 随机立绘池：同「阵营×职业×性别」全部等概率随机（2026-11-09 全量入池 143 张） */
+  var PORTRAIT_POOL={
+    'mo_alchemist_f':['images/mo_alchemist_f.jpg','images/mo_alchemist_open1_f.jpg','images/mo_alchemist_open2_f.jpg'],
+    'mo_alchemist_m':['images/mo_alchemist_m.jpg'],
+    'mo_array_f':['images/mo_array_done_f.jpg'],
+    'mo_array_m':['images/mo_array_8277_m.jpg','images/mo_array_m.jpg'],
+    'mo_artificer_f':['images/mo_artificer_boom_f.jpg','images/mo_artificer_moon_f.jpg'],
+    'mo_artificer_m':['images/mo_artificer_m.jpg'],
+    'mo_beast_f':['images/mo_beast_boom_f.jpg','images/mo_beast_pair_f.jpg','images/mo_beast_ride_f.jpg'],
+    'mo_beast_m':['images/mo_beast_8274_m.jpg','images/mo_beast_m.jpg'],
+    'mo_blade_f':['images/mo_blade_boom_f.jpg','images/mo_blade_charge_f.jpg','images/mo_blade_f.jpg','images/mo_blade_f2_f.jpg'],
+    'mo_blade_m':['images/mo_blade_8269_m.jpg','images/mo_blade_m.jpg'],
+    'mo_body_f':['images/mo_body_boom_f.jpg','images/mo_body_f.jpg'],
+    'mo_body_m':['images/mo_body_m.jpg','images/mo_body_stone_m.jpg'],
+    'mo_herbalist_f':['images/mo_herbalist_boom_f.jpg','images/mo_herbalist_night_f.jpg'],
+    'mo_herbalist_m':['images/mo_herbalist_8276_m.jpg','images/mo_herbalist_m.jpg'],
+    'mo_mage_f':['images/mo_mage_8557_f.jpg','images/mo_mage_boom_f.jpg','images/mo_mage_f.jpg'],
+    'mo_mage_m':['images/mo_mage_bell1_m.jpg','images/mo_mage_bell2_m.jpg','images/mo_mage_bell3_m.jpg','images/mo_mage_m.jpg'],
+    'mo_puppet_f':['images/mo_puppet_boom_f.jpg','images/mo_puppet_f.jpg'],
+    'mo_puppet_m':['images/mo_puppet_m.jpg'],
+    'mo_sword_f':['images/mo_sword_boom_f.jpg','images/mo_sword_cloud_f.jpg'],
+    'mo_sword_m':['images/mo_sword_8270_m.jpg','images/mo_sword_m.jpg'],
+    'mo_talisman_f':['images/mo_talisman_boom_f.jpg','images/mo_talisman_f.jpg'],
+    'mo_talisman_m':['images/mo_talisman_8272_m.jpg','images/mo_talisman_m.jpg'],
+    'mo_yinyang_f':['images/mo_yinyang_boom_f.jpg','images/mo_yinyang_f.jpg','images/mo_yinyang_star_f.jpg'],
+    'mo_yinyang_m':['images/mo_yinyang_8273_m.jpg','images/mo_yinyang_m.jpg'],
+    'xian_alchemist_f':['images/xian_alchemist_8210_f.jpg','images/xian_alchemist_8252_f.jpg','images/xian_alchemist_bd_f.jpg','images/xian_alchemist_e_f.jpg','images/xian_alchemist_f.jpg','images/xian_alchemist_morning_f.jpg'],
+    'xian_alchemist_m':['images/xian_alchemist_bd_m.jpg','images/xian_alchemist_hall_m.jpg','images/xian_alchemist_m.jpg'],
+    'xian_array_f':['images/xian_array_8247_f.jpg','images/xian_array_a_f.jpg','images/xian_array_ab_f.jpg','images/xian_array_f.jpg'],
+    'xian_array_m':['images/xian_array_ab_m.jpg','images/xian_array_m.jpg'],
+    'xian_artificer_f':['images/xian_artificer_8250_f.jpg','images/xian_artificer_8655_f.jpg','images/xian_artificer_boom_f.jpg','images/xian_artificer_f.jpg'],
+    'xian_artificer_m':['images/xian_artificer_8265_m.jpg','images/xian_artificer_m.jpg'],
+    'xian_beast_f':['images/xian_beast_8222_f.jpg','images/xian_beast_8656_f.jpg','images/xian_beast_boom_f.jpg','images/xian_beast_f.jpg'],
+    'xian_beast_m':['images/xian_beast_8257_m.jpg','images/xian_beast_m.jpg'],
+    'xian_blade_f':['images/xian_blade_8204_f.jpg','images/xian_blade_boom_f.jpg','images/xian_blade_df_f.jpg','images/xian_blade_sunset_f.jpg'],
+    'xian_blade_m':['images/xian_blade_8207_m.jpg','images/xian_blade_black_m.jpg','images/xian_blade_df_m.jpg','images/xian_blade_m.jpg'],
+    'xian_body_f':['images/xian_body_8218_f.jpg','images/xian_body_8536_f.jpg','images/xian_body_be_f.jpg','images/xian_body_boom_f.jpg','images/xian_body_lock2_f.jpg','images/xian_body_lock_f.jpg'],
+    'xian_body_m':['images/xian_body_8217_m.jpg','images/xian_body_be_m.jpg','images/xian_body_ding_m.jpg','images/xian_body_m.jpg'],
+    'xian_herbalist_f':['images/xian_herbalist_8224_f.jpg','images/xian_herbalist_8658_f.jpg','images/xian_herbalist_boom_f.jpg','images/xian_herbalist_f.jpg'],
+    'xian_herbalist_m':['images/xian_herbalist_m.jpg'],
+    'xian_mage_f':['images/xian_mage_8211_f.jpg','images/xian_mage_8212_f.jpg','images/xian_mage_ad_f.jpg','images/xian_mage_boom_f.jpg','images/xian_mage_c_f.jpg','images/xian_mage_f.jpg'],
+    'xian_mage_m':['images/xian_mage_8254_m.jpg','images/xian_mage_ad_m.jpg','images/xian_mage_m.jpg'],
+    'xian_puppet_f':['images/xian_puppet_8223_f.jpg','images/xian_puppet_beans_f.jpg','images/xian_puppet_ef_f.jpg','images/xian_puppet_f.jpg'],
+    'xian_puppet_m':['images/xian_puppet_ef_m.jpg','images/xian_puppet_m.jpg'],
+    'xian_sword_f':['images/xian_sword_8209_f.jpg','images/xian_sword_boom_f.jpg','images/xian_sword_cd_f.jpg','images/xian_sword_d_f.jpg','images/xian_sword_f.jpg'],
+    'xian_sword_m':['images/xian_sword_8248_m.jpg','images/xian_sword_cd_m.jpg','images/xian_sword_m.jpg','images/xian_sword_tomb_m.jpg'],
+    'xian_talisman_f':['images/xian_talisman_8188_f.jpg','images/xian_talisman_8213_f.jpg','images/xian_talisman_b_f.jpg','images/xian_talisman_bf_f.jpg','images/xian_talisman_boom_f.jpg','images/xian_talisman_cf_f.jpg','images/xian_talisman_f.jpg'],
+    'xian_talisman_m':['images/xian_talisman_bf_m.jpg','images/xian_talisman_cf_m.jpg','images/xian_talisman_lib_m.jpg','images/xian_talisman_m.jpg'],
+    'xian_yinyang_f':['images/xian_yinyang_8219_f.jpg','images/xian_yinyang_8657_f.jpg','images/xian_yinyang_boom_f.jpg','images/xian_yinyang_f.jpg'],
+    'xian_yinyang_m':['images/xian_yinyang_8256_m.jpg','images/xian_yinyang_m.jpg']
+  };
+  function pickPortrait(campEn,jobEn,sex){
+    var pool=PORTRAIT_POOL[campEn+"_"+jobEn+"_"+sex]||[];
+    return pool.length?pool[Math.floor(Math.random()*pool.length)]:"";
+  }
+
   /* ============ 命格屏保（分享解锁后可生成） ============ */
   var WALL_EN = {
     '剑修':'sword','刀修':'blade','法修':'mage','体修':'body','炼丹师':'alchemist','炼器师':'artificer',
-    '符师':'talisman','阵法师':'array','御兽师':'beast','傡儣师':'puppet','阴阳师':'yinyang','灵植师':'herbalist'
+    '符师':'talisman','阵法师':'array','御兽师':'beast','傀儡师':'puppet','阴阳师':'yinyang','灵植师':'herbalist'
   };
   var wallBusy = false;
   function tjToast(msg) {
@@ -2391,13 +2447,19 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
     var jobEn = JOB_EN[job] || 'array';
     var sex = (state.sex === 'm') ? 'm' : 'f';
     var base = campEn + '_' + jobEn;
-    // 命格专属图优先（仅当 p 是真实命格对象，通用兜底不套）
-    var pk = '';
-    Object.keys(COMBO32).some(function (k) { if (COMBO32[k] === p) { pk = k; return true; } return false; });
-    if (!pk) Object.keys(PERSONA).some(function (k) { if (PERSONA[k] === p) { pk = k; return true; } return false; });
+    /* 随机池：同「阵营×职业×性别」全部立绘等概率抽取；池空才走旧兜底 */
     var cands = [];
-    if (pk) cands.push('images/' + base + '_' + pk.toLowerCase() + '_' + sex + '.jpg');
-    cands.push('images/' + base + '_' + sex + '.jpg', '../images/' + base + '_' + sex + '.jpg');
+    var picked = pickPortrait(campEn, jobEn, sex);
+    if (picked) {
+      cands.push(picked);
+    } else {
+      // 命格专属图优先（仅当 p 是真实命格对象，通用兜底不套）
+      var pk = '';
+      Object.keys(COMBO32).some(function (k) { if (COMBO32[k] === p) { pk = k; return true; } return false; });
+      if (!pk) Object.keys(PERSONA).some(function (k) { if (PERSONA[k] === p) { pk = k; return true; } return false; });
+      if (pk) cands.push('images/' + base + '_' + pk.toLowerCase() + '_' + sex + '.jpg');
+      cands.push('images/' + base + '_' + sex + '.jpg', '../images/' + base + '_' + sex + '.jpg');
+    }
     var ci = 0;
     img.onerror = function () { ci++; if (ci < cands.length) img.src = cands[ci]; else img.remove(); };
     img.src = cands[0];
