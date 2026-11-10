@@ -1895,6 +1895,7 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
     return out;
   }
   function openGallery() {
+    setTimeout(preloadEggs, 1200);
     if (!GJ.built) buildGallery();
     show('scTujing');
   }
@@ -1951,7 +1952,7 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
   var _tjBack = $('#btnTjBack');
   if (_tjBack) _tjBack.addEventListener('click', function () { show('scResult'); FP.go(6); });
   var _tjWall = $('#btnTjWall');
-  if (_tjWall) _tjWall.addEventListener('click', function () { openWall(); });
+  if (_tjWall) _tjWall.addEventListener('click', function () { openWall('egg'); });
 
   /* ============ 分享解锁：先给分享动作，再进图鉴 ============ */
   function shareUnlock() {
@@ -2091,32 +2092,62 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
     });
     el.innerHTML = h;
   }
-  function openWall() {
+  var wallMode = 'egg';
+  /* 彩蛋壁纸预取池：结果页空闲时后台预下 3 张随机壁纸，点击时 3 选 1 全部命中缓存、秒开 */
+  var EGG_PRE = [];
+  function preloadEggs() {
+    if (EGG_PRE.length || !window.Image) return;
+    for (var i = 0; i < 3; i++) {
+      var n = 1 + Math.floor(Math.random() * 24);
+      var u = 'wallpaper/wp' + (n < 10 ? '0' + n : n) + '_f.jpg';
+      if (EGG_PRE.indexOf(u) === -1) EGG_PRE.push(u);
+      var im = new Image(); im.src = u;
+    }
+  }
+  function openWall(mode) {
     var w = GJ.wall;
     if (!w || wallBusy) return;
     var card = $('#wallCard');
     if (!card) return;
     wallBusy = true;
-    /* 竖排印章已下线：壁纸为独立成品图，不再叠加阵营/职业字样 */
+    wallMode = (mode === 'portrait') ? 'portrait' : 'egg';
     var sealEl = $('#wallSeal'), jobEl = $('#wallJob');
-    if (sealEl) sealEl.style.display = 'none';
-    if (jobEl) jobEl.style.display = 'none';
+    if (wallMode === 'portrait') {
+      /* 人物立绘模式：右上竖排阵营印 + 左下职业名 */
+      if (sealEl) { vSeal(sealEl, w.camp); sealEl.style.display = ''; }
+      if (jobEl) { vSeal(jobEl, w.jobName); jobEl.style.display = ''; }
+    } else {
+      /* 彩蛋模式：壁纸为独立成品图，不叠加阵营/职业字样 */
+      if (sealEl) sealEl.style.display = 'none';
+      if (jobEl) jobEl.style.display = 'none';
+    }
     paintGua();
     var img = $('#wallImg');
     if (!img) { img = document.createElement('img'); img.id = 'wallImg'; img.alt = ''; card.insertBefore(img, card.firstChild); }
     var campEn = (w.camp === '魔门') ? 'mo' : 'xian';
     var jobEn = WALL_EN[w.jobRaw] || 'array';
-    /* 壁纸 = 24 张随机彩蛋池（wp01–wp24）：每次解锁随机掉一张，重复测试可集卡；与结果页第1屏立绘无关，缺图自动换抽/回退立绘 */
     var cands = [];
-    var wpick = 1 + Math.floor(Math.random() * 24);
-    cands.push('wallpaper/wp' + (wpick < 10 ? '0' + wpick : wpick) + '_f.jpg');
-    for (var t = 0; t < 2; t++) {
-      var p2 = 1 + Math.floor(Math.random() * 24);
-      var cand2 = 'wallpaper/wp' + (p2 < 10 ? '0' + p2 : p2) + '_f.jpg';
-      if (cands.indexOf(cand2) === -1) cands.push(cand2);
+    if (wallMode === 'portrait') {
+      /* 立绘池：同「阵营×职业×性别」随机抽一张；多数命格只有一张且第一屏已加载，基本秒开 */
+      var picked = pickPortrait(campEn, jobEn, w.sex);
+      if (picked) cands.push(picked);
+      cands.push('images/' + campEn + '_' + jobEn + '_' + w.sex + '.jpg');
+    } else {
+      /* 彩蛋：优先从已预取的 3 张里随机（已进缓存）；没预取到就现抽 */
+      if (EGG_PRE.length) cands.push(EGG_PRE[Math.floor(Math.random() * EGG_PRE.length)]);
+      else {
+        var wpick = 1 + Math.floor(Math.random() * 24);
+        cands.push('wallpaper/wp' + (wpick < 10 ? '0' + wpick : wpick) + '_f.jpg');
+      }
+      for (var t = 0; t < 2; t++) {
+        var p2 = 1 + Math.floor(Math.random() * 24);
+        var cand2 = 'wallpaper/wp' + (p2 < 10 ? '0' + p2 : p2) + '_f.jpg';
+        if (cands.indexOf(cand2) === -1) cands.push(cand2);
+      }
     }
     var pai = $('#paiPortrait img');
-    if (pai && pai.src && pai.complete && pai.naturalWidth > 0) cands.push(pai.src);
+    if (pai && pai.src && pai.complete && pai.naturalWidth > 0 && cands.indexOf(pai.src) === -1) cands.push(pai.src);
+    tjToast(wallMode === 'portrait' ? '正在取你的立绘…' : '正在取彩蛋壁纸…');
     var ci = 0, fired = false;
     var finish = function () {
       if (fired) return; fired = true; wallBusy = false;
@@ -2137,7 +2168,7 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
     wallSaving = true;
     window.html2canvas($('#wallCard'), { backgroundColor: '#1C1812', useCORS: true, logging: false, scale: 3, onclone: function (d) { window.__fitCover(d); } })
       .then(function (cv) {
-        var name = '我在凡间修仙_屏保彩蛋.png';
+        var name = wallMode === 'portrait' ? '我在凡间修仙_人物立绘.png' : '我在凡间修仙_屏保彩蛋.png';
         cv.toBlob(function (blob) {
           wallBusy = false; wallSaving = false;
           if (!blob) { tjToast('生成失败'); return; }
@@ -2355,7 +2386,7 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
       for (var i = 1; i <= TOTAL; i++) dh += '<i class="' + (i === cur ? 'on' : '') + '"></i>';
       dots.innerHTML = dh;
       var list = LABEL[cur] || [], bh = '';
-      if (cur === 6 && list.length && unlockedNow()) list = [{ t: '打 开 命 格 图 鉴', c: 'main', a: 'gallery' }, { t: '生 成 命 格 屏 保', c: 'ghost', a: 'wall' }];
+      if (cur === 6 && list.length && unlockedNow()) list = [{ t: '打 开 命 格 图 鉴', c: 'main', a: 'gallery' }, { t: '生 成 人 物 立 绘', c: 'ghost', a: 'wall' }];
       list.forEach(function (b, idx) {
         bh += '<button class="fp-btn ' + b.c + '" data-a="' + b.a + '">' + b.t + '</button>';
       });
@@ -2434,7 +2465,7 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
         return;
       }
       if (a === 'gallery') { openGallery(); return; }
-      if (a === 'wall') { openWall(); return; }
+      if (a === 'wall') { openWall('portrait'); return; }
     }
 
     if (document.addEventListener) {
