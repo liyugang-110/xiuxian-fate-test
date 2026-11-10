@@ -2732,7 +2732,7 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
     g.scale(dpr, dpr);
     g.clearRect(0, 0, W, H);
 
-    var N = ORDER.length, maxV = 10;
+    var N = ORDER.length, maxV = 5;
     var pts = ORDER.map(function (k, i) {
       var ang = -Math.PI / 2 + i * 2 * Math.PI / N;
       return { k: k, ang: ang };
@@ -2801,7 +2801,7 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
       g.fillText(nm, x, y - 7);
       g.font = '10px sans-serif';
       g.fillStyle = '#8A8172';
-      g.fillText(state.counts[pt.k] + '/10', x, y + 10);
+      g.fillText(state.counts[pt.k] + '/5', x, y + 10);
     });
   }
 
