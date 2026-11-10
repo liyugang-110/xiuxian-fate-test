@@ -1281,7 +1281,7 @@ body.in-result{overflow:hidden;padding-bottom:0;}
       <p class="tj-h">全部 24 格</p>
       <p class="tj-sub">十二脉 × 两道，每一种都算数。点开看它的判词与名场面。</p>
       <div class="tj-grid" id="tjGrid"></div>
-      <button class="tj-wall" id="btnTjWall">生 成 我 的 命 格 屏 保</button>
+      <button class="tj-wall" id="btnTjWall">分 享 获 得 屏 保 彩 蛋</button>
       <button class="tj-back" id="btnTjBack">← 回 到 我 的 命 格</button>
     </div>
   </section>
@@ -1305,7 +1305,7 @@ body.in-result{overflow:hidden;padding-bottom:0;}
 </div>
 <div class="tj-mask" id="tjMask"><div class="tj-detail" id="tjDetail"></div></div>
 <div class="wall-stage" id="wallStage"><div class="wall" id="wallCard"><img id="wallImg" alt=""><div class="wall-fade"></div><div class="wall-seal" id="wallSeal"></div><div class="wall-job" id="wallJob"></div><div class="wall-gua" id="wallGua"></div></div></div>
-<div class="wall-mask" id="wallMask"><div class="wall-ask"><p class="wa-t">这 张 壁 纸 ，分 享 后 才 能 带 走</p><p class="wa-s">把测试发给一位朋友，回来就能保存<br>9:16 高清竖版 · 每个命格都不一样</p><button class="wa-go" id="waGo">分 享 解 锁</button><button class="wa-no" id="waNo">下次再说</button></div></div>
+<div class="wall-mask" id="wallMask"><div class="wall-ask"><p class="wa-t">这 张 壁 纸 ，分 享 后 才 能 带 走</p><p class="wa-s">把测试发给一位朋友，回来就能保存<br>9:16 高清竖版 · 24 款彩蛋随机掉落</p><button class="wa-go" id="waGo">分 享 解 锁</button><button class="wa-no" id="waNo">下次再说</button></div></div>
 <div class="shot-mask" id="shotMask">
   <p class="shot-tip">长按图片 · 保存或分享</p>
   <img id="shotImg" alt="战绩图">
@@ -2093,9 +2093,10 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
     var card = $('#wallCard');
     if (!card) return;
     wallBusy = true;
-    /* 竖排逐字渲染：不用 writing-mode，保证 html2canvas 导出时字序与字距一致 */
-    vSeal($('#wallSeal'), w.camp);
-    vSeal($('#wallJob'), w.jobName);
+    /* 竖排印章已下线：壁纸为独立成品图，不再叠加阵营/职业字样 */
+    var sealEl = $('#wallSeal'), jobEl = $('#wallJob');
+    if (sealEl) sealEl.style.display = 'none';
+    if (jobEl) jobEl.style.display = 'none';
     paintGua();
     var img = $('#wallImg');
     if (!img) { img = document.createElement('img'); img.id = 'wallImg'; img.alt = ''; card.insertBefore(img, card.firstChild); }
@@ -2129,7 +2130,7 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
     wallSaving = true;
     window.html2canvas($('#wallCard'), { backgroundColor: '#1C1812', useCORS: true, logging: false, scale: 3, onclone: function (d) { window.__fitCover(d); } })
       .then(function (cv) {
-        var name = '我在凡间修仙_屏保_' + (($('#wallJob') || {}).textContent || '') + '.png';
+        var name = '我在凡间修仙_屏保彩蛋.png';
         cv.toBlob(function (blob) {
           wallBusy = false; wallSaving = false;
           if (!blob) { tjToast('生成失败'); return; }
@@ -2168,10 +2169,13 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
     });
     if (!go) return;
     go.addEventListener('click', function () {
+      /* 两步门槛：无原生分享的环境（微信等）第一次点=复制链接，第二次点（发给好友后回来）才解锁 */
+      if (go._armed) { unlocked(); return; }
       var q = GJ.self ? byKey(GJ.self) : null;
       var url = location.href.split('#')[0].split('?')[0];
       var text = '我在「我在凡间修仙」测出了\u3010' + (q ? q.job + '\u00b7' + q.name : '\u672c\u547d') + '\u3011\uff0c\u4e09\u5206\u949f\u6d4b\u6d4b\u4f60\u7684\u4ed9\u9b54\u672c\u547d \u2192 ' + url;
       function unlocked() {
+        go._armed = false;
         try { localStorage.setItem('wall_unlocked', '1'); } catch (e) {}
         var m = $('#wallMask'); if (m) m.classList.remove('on');
         tjToast('已解锁 · 正在生成壁纸');
@@ -2185,9 +2189,13 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
         document.body.appendChild(ta); ta.select();
         try { ok = document.execCommand('copy'); } catch (e) {}
         ta.remove();
-        if (ok) unlocked(); else tjToast('复制失败，请截屏二维码发给朋友');
+        if (ok) {
+          go._armed = true;
+          go.textContent = '我 已 发 给 好 友 · 解 锁';
+          tjToast('链接已复制，发给一位好友后回来点解锁');
+        } else tjToast('复制失败，请截屏二维码发给朋友');
       }
-      if (navigator.share) navigator.share({ title: '我在凡间修仙', text: text, url: url }).then(unlocked).catch(function () {});
+      if (navigator.share) navigator.share({ title: '我在凡间修仙', text: text, url: url }).then(unlocked).catch(function () { tjToast('分享完成才能解锁壁纸哦'); });
       else fallbackCopy();
     });
   })();
