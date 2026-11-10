@@ -2128,7 +2128,9 @@ window.STORIES={"persona": {"A": {"name": "悬心", "job": "阵法师", "role": 
     var jobEn = WALL_EN[w.jobRaw] || 'array';
     var cands = [];
     if (wallMode === 'portrait') {
-      /* 立绘池：同「阵营×职业×性别」随机抽一张；多数命格只有一张且第一屏已加载，基本秒开 */
+      /* 首选第一屏已加载的立绘（已进缓存、秒开）；它本身就是立绘池随机抽的，多样性不变 */
+      var pai0 = $('#paiPortrait img');
+      if (pai0 && pai0.src && pai0.complete && pai0.naturalWidth > 0) cands.push(pai0.src);
       var picked = pickPortrait(campEn, jobEn, w.sex);
       if (picked) cands.push(picked);
       cands.push('images/' + campEn + '_' + jobEn + '_' + w.sex + '.jpg');
